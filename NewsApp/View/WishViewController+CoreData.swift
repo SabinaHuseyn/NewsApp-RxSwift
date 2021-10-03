@@ -26,20 +26,7 @@ extension WishListViewController {
             wishTableView.reloadData()
             return
         }
-//        saveWishToCoreData(wishTitle)
     }
-    
-//    func saveWishToCoreData(_ wtitle: String) {
-//        let newWish = WishList(context: persistenceManager.context)
-//        newWish.title = wtitle
-//
-//        persistenceManager.save()
-//        self.wishAlreadySaved = true
-//
-//        let cell = wishTableView.cellForRow(at: [0,1]) as! MainTableViewCell
-//        cell.likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
-//    }
-    
     
     func deleteWishFromCoreData() {
         let wish = persistenceManager.fetch(WishList.self)

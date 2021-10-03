@@ -22,7 +22,6 @@ class MainTableViewCell: UITableViewCell {
     @IBOutlet weak var descriptionLbl: UILabel!
     var container: NSPersistentContainer!
     let persistenceManager = PersistenceManager.shared
-//    var wishList: ArticlesFilterViewModel!
     var wishSaved: Bool!
     var title: String?
     var wishDelegate: WishDelegate?
@@ -51,7 +50,6 @@ class MainTableViewCell: UITableViewCell {
             
     @IBAction func clickLike(_ sender: UIButton) {
         saveWishToFavorites()
-//        wishDelegate?.updateTableView()
         wishDelegate?.getSavedWishes()
         let name = Notification.Name("isLiked")
         NotificationCenter.default.post(name: name, object: nil)

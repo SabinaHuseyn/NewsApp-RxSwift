@@ -24,11 +24,11 @@ final class WishListCoordinator: Coordinator{
         navigationController.pushViewController(vc, animated: true)
     }
     
-//    func detailWish(_ detail: HomeTableList, _ url: String) {
-//        let vc = DetailsViewController.instantiate()
-////        vc.coordinator = self
-//        vc.detailList = detail
-//        vc.detailsUrl = url
-//        navigationController.pushViewController(vc, animated: true)
-//    }
+    func detailShow(_ url: String) {
+        let vc = WebViewController()
+//        vc.webCoordinator = self
+        vc.detailsUrl = url
+        navigationController.pushViewController(vc, animated: true)
+    }
+    
 }

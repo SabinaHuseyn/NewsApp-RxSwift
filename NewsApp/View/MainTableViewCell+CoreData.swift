@@ -61,8 +61,6 @@ extension MainTableViewCell {
                    if currentWish.title == title {
                        persistenceManager.delete(currentWish)
                        wishSaved = false
-                       
-    //                    let cell = tableView.cellForRow(at: [0,1]) as! HomeTableViewCell
                     likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
                        break
                    }

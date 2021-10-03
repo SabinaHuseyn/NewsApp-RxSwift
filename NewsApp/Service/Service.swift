@@ -7,12 +7,28 @@
 
 import Foundation
 import Alamofire
+    
 
-class Service: NSObject {
+class Service {
+    
+//    enum Query {
+//        case countryQ
+//        case categoryQ
+//        case publishedAtQ
+//        case sourceQ
+//        case searchingQ
+//        case everythingQ
+//    }
     static let shared = Service()
-   
+    
+//    func queryItems(dictionary: [String:String]) -> [URLQueryItem] {
+//        return dictionary.map {
+//            URLQueryItem(name: $0, value: $1)
+//        }
+//    }
+    
     func fetchNews(completion: @escaping ([NewsFilterModel]?, Error?) -> ()) {
-        let urlString = "https://newsapi.org/v2/top-headlines/sources?apiKey=3f21ce1e408444928ebd80a06129d57a"
+        let urlString = "\(API.baseUrl1)?apiKey=\(API.apiKey)"
         guard let url = URL(string: urlString) else { return }
         URLSession.shared.dataTask(with: url) { (data, resp, err) in
             if let err = err {
@@ -34,13 +50,14 @@ class Service: NSObject {
             }.resume()
     }
     
-    func fetchNewsCountry(query: String, completion: @escaping ([ArticleModel]) -> Void) {
-      // 1
+    func fetchNewsCountry(query: String, page: Int = 1, completion: @escaping ([ArticleModel]) -> Void) {
+        // 1
         let url = API.baseUrl
-      // 2
+        // 2
         var components = URLComponents(string: url)!
         components.queryItems = [
             URLQueryItem(name: "country", value: query),
+            URLQueryItem(name: "page", value: "\(page)"),
             URLQueryItem(name: "apiKey", value: API.apiKey),
         ]
 

@@ -12,8 +12,9 @@ import CoreData
 //    func getData(list: [NewsFilterViewModel])
 //}
 
-class ViewController: UIViewController, WishDelegate, Storyboarded {
+class ViewController: UIViewController, WishDelegate {
     
+//    MARK: - IBOUTLETS
     lazy var searchBar: UISearchBar = UISearchBar(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
     var newsFilterViewModels = [NewsFilterViewModel]()
     var articlesCountryViewModels = [ArticlesFilterViewModel]()
@@ -25,7 +26,8 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
     var sourcesSearched = false
     var publishedDateSearched = false
     var searchbarSearched = false
-//    var filteredWish: [ArticlesFilterViewModel] = []
+    var currentPage = 1
+    var shouldShowLoadingCell = false
     var savedTitles: [WishList] = []
     var mainTableView: UITableView!
     var countryPickerView = UIPickerView()
@@ -34,8 +36,10 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
     var newsCountry = [NewsFilterViewModel]()
     var newsCategory = [NewsFilterViewModel]()
     var newsSource = [NewsFilterViewModel]()
+    var newsDate = [NewsFilterViewModel]()
     var spinner = UIActivityIndicatorView()
-    let datePickerView = UIDatePicker()
+    let datePicker = UIDatePicker()
+    var toolBar = UIToolbar()
     var container: NSPersistentContainer!
     let persistenceManager = PersistenceManager.shared
     weak var mainCoordinator: MainCoordinator?
@@ -77,8 +81,15 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
 
     }()
     
+    let btnDate: UIButton = {
+        let button = UIButton()
+        button.setBtn("Published At")
+        return button
+    }()
+
+    
     let stackViewAll: UIStackView = {
-        let stackView = UIStackView  ()
+        let stackView = UIStackView()
         stackView.axis  = NSLayoutConstraint.Axis.vertical
         stackView.distribution  = UIStackView.Distribution.equalSpacing
         stackView.alignment = UIStackView.Alignment.center
@@ -92,7 +103,7 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
             refreshControl.addTarget(self, action:
                                         #selector(handleRefresh(_:)),
                                      for: UIControl.Event.valueChanged)
-            refreshControl.tintColor = UIColor.red
+        refreshControl.tintColor = .malina
         refreshControl.attributedTitle = NSAttributedString(string: "Loading")
             return refreshControl
         }()
@@ -110,9 +121,10 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
         setupStackView()
         setupBtn()
         setupMainTableView()
-        setupCountryTableView()
-        setupCategoryTableView()
-        setupSourceTableView()
+        setupCountryPickerView()
+        setupCategoryPickerView()
+        setupSourcePickerView()
+        setupDatePickerView()
 //        clearCoreDataStore()
 
     }
@@ -148,7 +160,7 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
            }
        }
    }
-    
+//    MARK: - CLEAR CORE DATA
 //    func clearCoreDataStore() {
 //            let context = persistenceManager.context
 //            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "WishList")
@@ -192,7 +204,7 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
         }
     }
     
-    // MARK: - SearchBar
+    // MARK: - SETUP FUNC
    
     func setupMainTableView() {
         let barHeight: CGFloat = UIApplication.shared.statusBarFrame.size.height + 210
@@ -203,42 +215,64 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
         mainTableView.separatorColor = .textBlue
         mainTableView.tintColor = .textBlue
         mainTableView.estimatedRowHeight = 200
-//        mainTableView.tableFooterView = UIView()
         mainTableView.register(UINib(nibName: "MainTableViewCell", bundle: nil), forCellReuseIdentifier: "MainTableViewCell")
         mainTableView.dataSource = self
         mainTableView.delegate = self
         self.view.addSubview(mainTableView)
-        self.mainTableView.addSubview(refreshControl)
+        self.mainTableView.tableFooterView = refreshControl
         mainTableView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
         mainTableView.topAnchor.constraint(equalTo: stackViewAll.bottomAnchor, constant: 10).isActive = true
     }
 
-    func setupCountryTableView() {
+    func setupCountryPickerView() {
         countryPickerView.delegate = self
         countryPickerView.backgroundColor = .backGrey
         countryPickerView.isHidden = true
         countryPickerView.dataSource = self
         self.view.addSubview(countryPickerView)
+        countryPickerView.center = view.center
+
     }
 
-    func setupCategoryTableView(){
+    func setupCategoryPickerView(){
         categoryPickerView.delegate = self
         categoryPickerView.backgroundColor = .backGrey
         categoryPickerView.isHidden = true
         categoryPickerView.dataSource = self
         self.view.addSubview(categoryPickerView)
+        categoryPickerView.center = view.center
+
     }
     
-    func setupSourceTableView(){
+    func setupSourcePickerView(){
         sourcePickerView.delegate = self
-        sourcePickerView.backgroundColor = .backGrey
+        categoryPickerView.backgroundColor = .backGrey
         sourcePickerView.isHidden = true
         sourcePickerView.dataSource = self
         self.view.addSubview(sourcePickerView)
+        sourcePickerView.center = view.center
+
+    }
+    
+    func setupDatePickerView(){
+//        datePickerView.delegate = self
+        self.view.addSubview(datePicker)
+        let calendar = Calendar(identifier: .gregorian)
+        var comps = DateComponents()
+        comps.month = 0
+        let maxDate = calendar.date(byAdding: comps, to: Date())
+        comps.month = -1
+        let minDate = calendar.date(byAdding: comps, to: Date())
+        datePicker.datePickerMode = .date
+        datePicker.maximumDate = maxDate
+        datePicker.minimumDate = minDate
+        datePicker.center = view.center
+        datePicker.backgroundColor = .backGrey
+        datePicker.isHidden = true
+//        datePickerView.dataSource = self
     }
     
     func setupStackView() {
-        
         stackViewAll.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         stackViewAll.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 10.0).isActive = true
         if #available(iOS 11, *) {
@@ -256,39 +290,22 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
         stackViewAll.addArrangedSubview(btnCountry)
         stackViewAll.addArrangedSubview(btnCategory)
         stackViewAll.addArrangedSubview(btnSource)
-        stackViewAll.addArrangedSubview(datePickerView)
+        stackViewAll.addArrangedSubview(btnDate)
     }
     
     func setupBtn() {
         btnCountry.widthAnchor.constraint(equalTo: stackViewAll.widthAnchor).isActive = true
         btnCategory.widthAnchor.constraint(equalTo: stackViewAll.widthAnchor).isActive = true
         btnSource.widthAnchor.constraint(equalTo: stackViewAll.widthAnchor).isActive = true
-        datePickerView.widthAnchor.constraint(equalTo: stackViewAll.widthAnchor).isActive = true
-        btnCountry.setTitleColor(.textBlue, for: .normal)
-        btnCategory.setTitleColor(.textBlue, for: .normal)
-        btnSource.setTitleColor(.textBlue, for: .normal)
-        datePickerView.tintColor = .textBlue
-        datePickerView.inputViewController?.title = "Pick a date"
-        datePickerView.translatesAutoresizingMaskIntoConstraints = false
-        btnCountry.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        btnCategory.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        btnSource.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        datePickerView.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        btnCountry.rightImage(image: UIImage(named: "addBtn")!)
-        btnCategory.rightImage(image: UIImage(named: "addBtn")!)
-        btnSource.rightImage(image: UIImage(named: "addBtn")!)
+        btnDate.widthAnchor.constraint(equalTo: stackViewAll.widthAnchor).isActive = true
         favBtn.setImage(UIImage(named: "favorite"), for: .normal)
         favBtn.widthAnchor.constraint(equalToConstant: 30).isActive = true
         favBtn.heightAnchor.constraint(equalToConstant: 30).isActive = true
         btnCountry.addTarget(self, action: #selector(countryBtnAct), for: .touchUpInside)
         btnCategory.addTarget(self, action: #selector(categoryBtnAct), for: .touchUpInside)
         btnSource.addTarget(self, action: #selector(sourceBtnAct), for: .touchUpInside)
-        datePickerView.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
-        if #available(iOS 13.4, *) {
-            datePickerView.preferredDatePickerStyle = .compact
-        } else {
-            // Fallback on earlier versions
-        }
+        btnDate.addTarget(self, action: #selector(dateBtnAct), for: .touchUpInside)
+        datePicker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
         favBtn.addTarget(self, action: #selector(openWishList), for: .touchUpInside)
     }
     
@@ -300,6 +317,7 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
         self.mainTableView.tableFooterView = spinner
     }
     
+//    MARK: - CoreDATA
     func getSavedWishes() {
         
         let savedWishes = persistenceManager.fetch(WishList.self)
@@ -315,23 +333,24 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
             }
         }
     }
-    
+//    MARK: - @objc ACTIONS
     @objc func openWishList() {
         mainCoordinator?.wishClick()
     }
     
     @objc func dateChanged(_ sender: UIDatePicker) {
         
-        let iso8601DateFormatter = ISO8601DateFormatter()
-        iso8601DateFormatter.formatOptions = [.withInternetDateTime]
-        let string = iso8601DateFormatter.string(from: datePickerView.date)
-
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let string = dateFormatter.string(from: sender.date)
+        print(string)
+        datePicker.isHidden = true
         fetchDate(publishedAt: string)
     }
     
     @objc func handleRefresh(_ sender: AnyObject) {
        // Code to refresh table view
-       mainTableView.reloadData()
+        currentPage = 1
        refreshControl.endRefreshing() // End Refreshing
     }
     
@@ -359,5 +378,13 @@ class ViewController: UIViewController, WishDelegate, Storyboarded {
             sourcePickerView.isHidden = true
         }
      }
-    
+    @objc func dateBtnAct() {
+         print("Button is tapped")
+        if datePicker.isHidden == true {
+            datePicker.isHidden = false
+
+        } else{
+            datePicker.isHidden = true
+        }
+     }
 }

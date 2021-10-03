@@ -43,15 +43,9 @@ extension ViewController: UIPickerViewDelegate, UIPickerViewDataSource {
                 }
         return NSAttributedString(string: "Data")
     }
-//    func pickerView(_ pickerView: UIPickerView, attribut row: Int, forComponent component: Int) -> String? {
-//
-//        return "Select"
-//    }
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         switch pickerView {
         case countryPickerView:
-            pickerView.reloadComponent(component)
-
             fetchCountry(country: newsCountry[row].country)
             btnCountry.setTitle(newsCountry[row].country, for: .normal)
             countryPickerView.isHidden = true
@@ -63,7 +57,6 @@ extension ViewController: UIPickerViewDelegate, UIPickerViewDataSource {
             fetchSource(source: newsSource[row].id)
             btnSource.setTitle(newsSource[row].id, for: .normal)
             sourcePickerView.isHidden = true
-    
           default:
             break
         }

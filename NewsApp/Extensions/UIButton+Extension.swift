@@ -25,6 +25,9 @@ import UIKit
         self.layer.cornerRadius = 5
         self.backgroundColor = .backDarkGrey
         self.setTitle(name, for: .normal)
+        self.rightImage(image: UIImage(named: "addBtn")!)
+        self.setTitleColor(.textBlue, for: .normal)
+        self.heightAnchor.constraint(equalToConstant: 30).isActive = true
         self.translatesAutoresizingMaskIntoConstraints = false
     }
 }

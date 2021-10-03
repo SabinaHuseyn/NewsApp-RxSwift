@@ -20,9 +20,7 @@ extension ViewController: UISearchBarDelegate {
         searchController.loadViewIfNeeded()
         definesPresentationContext = true
     }
-  
-    
-    
+
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         articlesSearchViewModels.removeAll()
         guard let textToSearch = searchBar.text?.lowercased(), !textToSearch.isEmpty else {
@@ -36,11 +34,16 @@ extension ViewController: UISearchBarDelegate {
     }
     
     func textSearchChange(_ sender: String) {
+        countrySearched = false
+        categorySearched = false
+        sourcesSearched = false
+        searchbarSearched = true
+        publishedDateSearched = false
         Service.shared.fetchSearch(query: sender) { news in
             self.articlesSearchViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
             return DispatchQueue.main.async {
                 self.mainTableView.reloadData()
-                self.refreshControl.endRefreshing()
+//                self.refreshControl.endRefreshing()
                 
             }
         }

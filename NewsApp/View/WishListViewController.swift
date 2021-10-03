@@ -8,19 +8,15 @@
 import UIKit
 import CoreData
 
-class WishListViewController: UIViewController, NSFetchedResultsControllerDelegate, Storyboarded, WishDelegate {
-        
+class WishListViewController: UIViewController, NSFetchedResultsControllerDelegate, WishDelegate {
+//        MARK: - VARIABLES
     var container: NSPersistentContainer!
     var fetchedResultsController: NSFetchedResultsController<WishList>!
     weak var coordinator: WishListCoordinator?
     let persistenceManager = PersistenceManager.shared
-    
-     var wishTableView: UITableView!
-    
-//    var wishList: [ArticlesFilterViewModel] = []
+    var wishTableView: UITableView!
     var savedWishes: [WishList] = []
     var newsTitle: String?
-//    var filteredWishList: [ArticlesFilterViewModel] = []
     var wishAlreadySaved: Bool?
     var indexPath: IndexPath?
     var selectedItemId: String?
@@ -39,25 +35,19 @@ class WishListViewController: UIViewController, NSFetchedResultsControllerDelega
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        UINavigationBar.appearance().shadowImage = UIImage()
-//        getSavedWishes()
         view.backgroundColor = .white
         setupWishTableView()
         wishTableView.tableFooterView = UIView()
         self.view.addSubview(emptyLabel)
         createObservers()
 //        clearCoreDataStore()
-//        getRequest()
     }
     
     override func viewWillAppear(_ animated: Bool) {
-//        self.tabBarController?.tabBar.isHidden = false
         DispatchQueue.main.async {
             UINavigationBar.appearance().setBackgroundImage(UIImage(), for: .default)
-            UINavigationBar.appearance().shadowImage = UIImage()
             UINavigationBar.appearance().tintColor = .textBlue
-//            UINavigationBar.appearance().layer.borderColor = CGColor.malina
-//            UINavigationBar.appearance().layer.borderWidth = 5.0
+            UINavigationBar.appearance().shadowImage = UIImage()
 
             self.savedWishes.removeAll()
             self.getSavedWishes()
@@ -79,7 +69,7 @@ class WishListViewController: UIViewController, NSFetchedResultsControllerDelega
         self.savedWishes = wishes
         print(savedWishes)
     }
-  
+//  MARK: - SETUP FUNC
     func setupWishTableView() {
         let barHeight: CGFloat = UIApplication.shared.statusBarFrame.size.height
         let displayWidth: CGFloat = self.view.frame.width
@@ -169,9 +159,10 @@ extension WishListViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-//        coordinator?.detailWish(filteredWishList[indexPath.row], url)
+        if let detailUrl = savedWishes[indexPath.row].url {
+        coordinator?.detailShow(detailUrl)
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
+}
 }
