@@ -20,14 +20,6 @@ class ViewController: UIViewController, WishDelegate {
     var articlesCountryViewModels = [ArticlesFilterViewModel]()
     var articlesCategoryViewModels = [ArticlesFilterViewModel]()
     var articlesSourcesViewModels = [ArticlesFilterViewModel]()
-    var articlesDateViewModels = [ArticlesFilterViewModel]()
-    var countrySearched = false
-    var categorySearched = false
-    var sourcesSearched = false
-    var publishedDateSearched = false
-    var searchbarSearched = false
-    var currentPage = 1
-    var shouldShowLoadingCell = false
     var savedTitles: [WishList] = []
     var mainTableView: UITableView!
     var countryPickerView = UIPickerView()
@@ -36,10 +28,7 @@ class ViewController: UIViewController, WishDelegate {
     var newsCountry = [NewsFilterViewModel]()
     var newsCategory = [NewsFilterViewModel]()
     var newsSource = [NewsFilterViewModel]()
-    var newsDate = [NewsFilterViewModel]()
     var spinner = UIActivityIndicatorView()
-    let datePicker = UIDatePicker()
-    var toolBar = UIToolbar()
     var container: NSPersistentContainer!
     let persistenceManager = PersistenceManager.shared
     weak var mainCoordinator: MainCoordinator?
@@ -53,7 +42,14 @@ class ViewController: UIViewController, WishDelegate {
     let searchController = UISearchController(searchResultsController: nil)
     var previousRun = Date()
     let minInterval = 0.05
-
+    var currentPage = 1
+    var countrySearched = false
+    var categorySearched = false
+    var sourcesSearched = false
+    var publishedDateSearched = false
+    var searchbarSearched = false
+    var shouldShowLoadingCell = false
+    
     let badgeCount: UILabel = {
         var badge = UILabel()
         badge = UILabel(frame: CGRect(x: 22, y: -05, width: 20, height: 20))
@@ -80,14 +76,7 @@ class ViewController: UIViewController, WishDelegate {
         return button
 
     }()
-    
-    let btnDate: UIButton = {
-        let button = UIButton()
-        button.setBtn("Published At")
-        return button
-    }()
 
-    
     let stackViewAll: UIStackView = {
         let stackView = UIStackView()
         stackView.axis  = NSLayoutConstraint.Axis.vertical
@@ -124,7 +113,6 @@ class ViewController: UIViewController, WishDelegate {
         setupCountryPickerView()
         setupCategoryPickerView()
         setupSourcePickerView()
-        setupDatePickerView()
 //        clearCoreDataStore()
 
     }
@@ -142,6 +130,7 @@ class ViewController: UIViewController, WishDelegate {
         }
     }
     
+//    MARK: - Fetch Data
     func fetchData() {
        Service.shared.fetchNews { (news, err) in
            if let err = err {
@@ -227,6 +216,7 @@ class ViewController: UIViewController, WishDelegate {
     func setupCountryPickerView() {
         countryPickerView.delegate = self
         countryPickerView.backgroundColor = .backGrey
+        countryPickerView.layer.cornerRadius = 10
         countryPickerView.isHidden = true
         countryPickerView.dataSource = self
         self.view.addSubview(countryPickerView)
@@ -237,6 +227,7 @@ class ViewController: UIViewController, WishDelegate {
     func setupCategoryPickerView(){
         categoryPickerView.delegate = self
         categoryPickerView.backgroundColor = .backGrey
+        categoryPickerView.layer.cornerRadius = 10
         categoryPickerView.isHidden = true
         categoryPickerView.dataSource = self
         self.view.addSubview(categoryPickerView)
@@ -246,30 +237,12 @@ class ViewController: UIViewController, WishDelegate {
     
     func setupSourcePickerView(){
         sourcePickerView.delegate = self
-        categoryPickerView.backgroundColor = .backGrey
+        sourcePickerView.backgroundColor = .backGrey
+        sourcePickerView.layer.cornerRadius = 10
         sourcePickerView.isHidden = true
         sourcePickerView.dataSource = self
         self.view.addSubview(sourcePickerView)
         sourcePickerView.center = view.center
-
-    }
-    
-    func setupDatePickerView(){
-//        datePickerView.delegate = self
-        self.view.addSubview(datePicker)
-        let calendar = Calendar(identifier: .gregorian)
-        var comps = DateComponents()
-        comps.month = 0
-        let maxDate = calendar.date(byAdding: comps, to: Date())
-        comps.month = -1
-        let minDate = calendar.date(byAdding: comps, to: Date())
-        datePicker.datePickerMode = .date
-        datePicker.maximumDate = maxDate
-        datePicker.minimumDate = minDate
-        datePicker.center = view.center
-        datePicker.backgroundColor = .backGrey
-        datePicker.isHidden = true
-//        datePickerView.dataSource = self
     }
     
     func setupStackView() {
@@ -290,22 +263,18 @@ class ViewController: UIViewController, WishDelegate {
         stackViewAll.addArrangedSubview(btnCountry)
         stackViewAll.addArrangedSubview(btnCategory)
         stackViewAll.addArrangedSubview(btnSource)
-        stackViewAll.addArrangedSubview(btnDate)
     }
     
     func setupBtn() {
         btnCountry.widthAnchor.constraint(equalTo: stackViewAll.widthAnchor).isActive = true
         btnCategory.widthAnchor.constraint(equalTo: stackViewAll.widthAnchor).isActive = true
         btnSource.widthAnchor.constraint(equalTo: stackViewAll.widthAnchor).isActive = true
-        btnDate.widthAnchor.constraint(equalTo: stackViewAll.widthAnchor).isActive = true
         favBtn.setImage(UIImage(named: "favorite"), for: .normal)
         favBtn.widthAnchor.constraint(equalToConstant: 30).isActive = true
         favBtn.heightAnchor.constraint(equalToConstant: 30).isActive = true
         btnCountry.addTarget(self, action: #selector(countryBtnAct), for: .touchUpInside)
         btnCategory.addTarget(self, action: #selector(categoryBtnAct), for: .touchUpInside)
         btnSource.addTarget(self, action: #selector(sourceBtnAct), for: .touchUpInside)
-        btnDate.addTarget(self, action: #selector(dateBtnAct), for: .touchUpInside)
-        datePicker.addTarget(self, action: #selector(dateChanged(_:)), for: .valueChanged)
         favBtn.addTarget(self, action: #selector(openWishList), for: .touchUpInside)
     }
     
@@ -338,16 +307,6 @@ class ViewController: UIViewController, WishDelegate {
         mainCoordinator?.wishClick()
     }
     
-    @objc func dateChanged(_ sender: UIDatePicker) {
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd"
-        let string = dateFormatter.string(from: sender.date)
-        print(string)
-        datePicker.isHidden = true
-        fetchDate(publishedAt: string)
-    }
-    
     @objc func handleRefresh(_ sender: AnyObject) {
        // Code to refresh table view
         currentPage = 1
@@ -376,15 +335,6 @@ class ViewController: UIViewController, WishDelegate {
             sourcePickerView.isHidden = false
         } else{
             sourcePickerView.isHidden = true
-        }
-     }
-    @objc func dateBtnAct() {
-         print("Button is tapped")
-        if datePicker.isHidden == true {
-            datePicker.isHidden = false
-
-        } else{
-            datePicker.isHidden = true
         }
      }
 }

@@ -58,20 +58,5 @@ extension ViewController {
    }
 }
     
-    func fetchDate(publishedAt: String) {
-        countrySearched = false
-        categorySearched = false
-        sourcesSearched = false
-        searchbarSearched = false
-        publishedDateSearched = true
-       Service.shared.fetchNewsDate(query: publishedAt) { news in
-
-           self.articlesDateViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
-           DispatchQueue.main.async {
-               self.mainTableView.reloadData()
-               self.refreshControl.endRefreshing()
-           }
-       }
-   }
 }
 

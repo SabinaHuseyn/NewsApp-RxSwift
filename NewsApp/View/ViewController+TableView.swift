@@ -28,8 +28,6 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
             return articlesSourcesViewModels.count
         }else if searchbarSearched == true {
             return articlesSearchViewModels.count
-        }else if publishedDateSearched == true {
-            return articlesDateViewModels.count
         }
         return 0
     }
@@ -82,17 +80,6 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
             let newsTitle = articlesSearchViewModels[indexPath.row].title
             check(cell, newsTitle!)
             
-        }else if publishedDateSearched == true {
-            cell.articlesFilterViewModel = articlesDateViewModels[indexPath.row]
-//                cell.title = artTitle
-            if let img = articlesDateViewModels[indexPath.row].urlToImage {
-                if let cellUrl = URL(string: img) {
-                    cell.articleImg.af.setImage(withURL: cellUrl)
-                }
-            }
-            let newsTitle = articlesDateViewModels[indexPath.row].title
-            check(cell, newsTitle!)
-            
         }
             return cell
     }
@@ -113,10 +100,6 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         }else if searchbarSearched == true {
             if let searchUrl = articlesSearchViewModels[indexPath.row].url {
             mainCoordinator?.detailShow(searchUrl)
-            }
-        }else if publishedDateSearched == true {
-            if let dateUrl = articlesDateViewModels[indexPath.row].url {
-            mainCoordinator?.detailShow(dateUrl)
             }
         }
     }

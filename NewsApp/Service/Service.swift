@@ -120,29 +120,6 @@ class Service {
         }
     }
     
-    func fetchNewsDate(query: String, completion: @escaping ([ArticleModel]) -> Void) {
-      // 1
-        let url = API.baseUrl
-      // 2
-        var components = URLComponents(string: url)!
-        components.queryItems = [
-            URLQueryItem(name: "from", value: query),
-            URLQueryItem(name: "apiKey", value: API.apiKey),
-        ]
-
-        AF.request(components.url! as URLConvertible, method: .get).responseDecodable(
-        of: ResponseArticle.self) { response in
-            print("DATA\(response)")
-            guard let items = response.value else {
-            return completion([])
-          }
-            DispatchQueue.main.async {
-                completion(items.articles)
-                print("RESULT\(items.articles)")
-            }
-        }
-    }
-    
     func fetchSearch(query: String, completion: @escaping ([ArticleModel]) -> Void) {
       // 1
         let url = API.baseUrl
