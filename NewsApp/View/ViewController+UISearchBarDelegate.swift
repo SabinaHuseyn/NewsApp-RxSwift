@@ -22,7 +22,10 @@ extension ViewController: UISearchBarDelegate {
     }
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        articlesSearchViewModels.removeAll()
+        if var searchTxt = articlesSearchViewModels {
+            guard searchTxt.count > 0 else {return}
+            searchTxt.removeAll()
+        }
         guard let textToSearch = searchBar.text?.lowercased(), !textToSearch.isEmpty else {
             return
         }
@@ -43,14 +46,14 @@ extension ViewController: UISearchBarDelegate {
             self.articlesSearchViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
             return DispatchQueue.main.async {
                 self.mainTableView.reloadData()
-//                self.refreshControl.endRefreshing()
+                self.refreshControl.endRefreshing()
                 
             }
         }
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        articlesSearchViewModels.removeAll()
-    }
+        guard articlesSearchViewModels!.count > 0 else {return}
+        articlesSearchViewModels?.removeAll()    }
 
 }

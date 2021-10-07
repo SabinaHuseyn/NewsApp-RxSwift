@@ -61,7 +61,7 @@ class Service {
             URLQueryItem(name: "apiKey", value: API.apiKey),
         ]
 
-        AF.request(components.url! as! URLConvertible, method: .get).responseDecodable(
+        AF.request(components.url! as URLConvertible, method: .get).responseDecodable(
         of: ResponseArticle.self) { response in
             print("DATA\(response)")
             guard let items = response.value else {

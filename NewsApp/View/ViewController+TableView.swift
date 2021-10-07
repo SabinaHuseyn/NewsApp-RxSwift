@@ -27,13 +27,17 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         }else if sourcesSearched == true {
             return articlesSourcesViewModels.count
         }else if searchbarSearched == true {
-            return articlesSearchViewModels.count
+            if let searchedData = articlesSearchViewModels {
+                return searchedData.count
+                
+            }
         }
         return 0
     }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "MainTableViewCell") as! MainTableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "MainTableViewCell", for: indexPath) as! MainTableViewCell
+    
         cell.wishDelegate = self
         
         if countrySearched == true {
@@ -70,14 +74,15 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
             check(cell, newsTitle!)
 
         }else if searchbarSearched == true {
-            cell.articlesFilterViewModel = articlesSearchViewModels[indexPath.row]
+            guard let searchedTxt = articlesSearchViewModels?[indexPath.row] else {return cell}
+            cell.articlesFilterViewModel = searchedTxt
 //                cell.title = artTitle
-            if let img = articlesSearchViewModels[indexPath.row].urlToImage {
+            if let img = articlesSearchViewModels?[indexPath.row].urlToImage {
                 if let cellUrl = URL(string: img) {
                     cell.articleImg.af.setImage(withURL: cellUrl)
                 }
             }
-            let newsTitle = articlesSearchViewModels[indexPath.row].title
+            let newsTitle = articlesSearchViewModels?[indexPath.row].title
             check(cell, newsTitle!)
             
         }
@@ -98,7 +103,7 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
             mainCoordinator?.detailShow(sourceUrl)
             }
         }else if searchbarSearched == true {
-            if let searchUrl = articlesSearchViewModels[indexPath.row].url {
+            if let searchUrl = articlesSearchViewModels?[indexPath.row].url {
             mainCoordinator?.detailShow(searchUrl)
             }
         }

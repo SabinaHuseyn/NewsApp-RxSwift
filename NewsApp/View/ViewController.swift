@@ -34,7 +34,7 @@ class ViewController: UIViewController, WishDelegate {
     weak var mainCoordinator: MainCoordinator?
     let favBtn = UIButton()
     var offset = UIOffset()
-    var articlesSearchViewModels = [ArticlesFilterViewModel]() {
+    var articlesSearchViewModels:[ArticlesFilterViewModel]? {
            didSet {
                mainTableView.reloadData()
            }
