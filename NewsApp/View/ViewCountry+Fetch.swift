@@ -17,8 +17,8 @@ extension ViewController {
          searchbarSearched = false
          publishedDateSearched = false
          Service.shared.fetchNewsCountry(query: country) { news in
-                self.articlesCountryViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
                 return DispatchQueue.main.async {
+                    self.articlesCountryViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
                     self.mainTableView.reloadData()
                     self.refreshControl.endRefreshing()
                 
@@ -34,8 +34,8 @@ extension ViewController {
         searchbarSearched = false
         publishedDateSearched = false
        Service.shared.fetchNewsSource(query: source) { news in
-               self.articlesSourcesViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
                DispatchQueue.main.async {
+                   self.articlesSourcesViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
                    self.mainTableView.reloadData()
                    self.refreshControl.endRefreshing()
            }
@@ -49,8 +49,8 @@ extension ViewController {
         searchbarSearched = false
         publishedDateSearched = false
        Service.shared.fetchNewsCategory(query: category) { news in
-           self.articlesCategoryViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
            DispatchQueue.main.async {
+               self.articlesCategoryViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
                self.mainTableView.reloadData()
                self.refreshControl.endRefreshing()
            
