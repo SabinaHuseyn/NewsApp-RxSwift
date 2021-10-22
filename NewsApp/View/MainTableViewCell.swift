@@ -25,28 +25,27 @@ class MainTableViewCell: UITableViewCell {
     var wishSaved: Bool!
     var title: String?
     var wishDelegate: WishDelegate?
-
-    var articlesFilterViewModel: ArticlesFilterViewModel! {
-            didSet {
-                guard let artName = articlesFilterViewModel.name else {return}
-                      self.sourceLbl?.text = artName
-                guard let artAuthor = articlesFilterViewModel.author else {return}
-                self.authorLbl?.text = artAuthor
-                guard let artDescription = articlesFilterViewModel.description else {return}
-                self.descriptionLbl?.text = artDescription
-                guard let newtitle = articlesFilterViewModel.title else {return}
-                self.title = newtitle
-                self.titleLbl?.text = newtitle
-                print("ETO TITLE\(String(describing: self.title))")
-                }
-        }
+    var articlesFilterViewModel: ArticlesFilterViewModel!
     
     override func prepareForReuse() {
         super.prepareForReuse()
         self.articleImg.af.cancelImageRequest()
         self.articleImg.image = nil
     }
-           
+     
+    func populateCell(articlesFilterViewModel: ArticlesFilterViewModel) {
+        guard let artName = articlesFilterViewModel.name else {return}
+              self.sourceLbl?.text = artName
+        guard let artAuthor = articlesFilterViewModel.author else {return}
+        self.authorLbl?.text = artAuthor
+        guard let artDescription = articlesFilterViewModel.description else {return}
+        self.descriptionLbl?.text = artDescription
+        guard let newtitle = articlesFilterViewModel.title else {return}
+        self.title = newtitle
+        self.titleLbl?.text = newtitle
+        self.articlesFilterViewModel = articlesFilterViewModel
+        print("ETO TITLE\(String(describing: self.title))")
+    }
             
     @IBAction func clickLike(_ sender: UIButton) {
         saveWishToFavorites()

@@ -26,7 +26,7 @@ extension MainTableViewCell {
                    deleteWishFromCoreData()
                    return
                }
-               saveWishToCoreData(articlesFilterViewModel)
+        saveWishToCoreData(self.articlesFilterViewModel)
                
            }
            
@@ -50,7 +50,6 @@ extension MainTableViewCell {
        
     likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
  }
-           
            
     func deleteWishFromCoreData() {
                let savedWish = persistenceManager.fetch(WishList.self)

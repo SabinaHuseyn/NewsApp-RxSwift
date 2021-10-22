@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1D2E815D2702716800FF0EA8 /* ViewController+TableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D2E815C2702716800FF0EA8 /* ViewController+TableView.swift */; };
 		1D2E815F27028E9900FF0EA8 /* UIPickerView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D2E815E27028E9900FF0EA8 /* UIPickerView+Extension.swift */; };
 		1D37085326FD1EBA007D9DC6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D37085226FD1EBA007D9DC6 /* AppDelegate.swift */; };
 		1D37085726FD1EBA007D9DC6 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D37085626FD1EBA007D9DC6 /* ViewController.swift */; };
@@ -24,7 +23,6 @@
 		1D4DBFC427037E9800160AB3 /* MainTableViewCell+CoreData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4DBFC327037E9800160AB3 /* MainTableViewCell+CoreData.swift */; };
 		1D4DBFC62703938800160AB3 /* ViewController+UIPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4DBFC52703938800160AB3 /* ViewController+UIPickerView.swift */; };
 		1D4DBFC827039ECA00160AB3 /* WishListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4DBFC727039ECA00160AB3 /* WishListViewController.swift */; };
-		1D4DBFCB2703AA3000160AB3 /* Storyboarded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4DBFCA2703AA3000160AB3 /* Storyboarded.swift */; };
 		1D4DBFCD2703AA5100160AB3 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4DBFCC2703AA5100160AB3 /* Coordinator.swift */; };
 		1D4DBFCF2703AA8200160AB3 /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4DBFCE2703AA8200160AB3 /* MainCoordinator.swift */; };
 		1D4DBFD12703AAFB00160AB3 /* WishListCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4DBFD02703AAFB00160AB3 /* WishListCoordinator.swift */; };
@@ -70,7 +68,6 @@
 
 /* Begin PBXFileReference section */
 		10AB159E58F16A5A747E81AB /* Pods_NewsApp_NewsAppUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NewsApp_NewsAppUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		1D2E815C2702716800FF0EA8 /* ViewController+TableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewController+TableView.swift"; sourceTree = "<group>"; };
 		1D2E815E27028E9900FF0EA8 /* UIPickerView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIPickerView+Extension.swift"; sourceTree = "<group>"; };
 		1D37084F26FD1EBA007D9DC6 /* NewsApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NewsApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D37085226FD1EBA007D9DC6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -91,7 +88,6 @@
 		1D4DBFC327037E9800160AB3 /* MainTableViewCell+CoreData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainTableViewCell+CoreData.swift"; sourceTree = "<group>"; };
 		1D4DBFC52703938800160AB3 /* ViewController+UIPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ViewController+UIPickerView.swift"; sourceTree = "<group>"; };
 		1D4DBFC727039ECA00160AB3 /* WishListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishListViewController.swift; sourceTree = "<group>"; };
-		1D4DBFCA2703AA3000160AB3 /* Storyboarded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Storyboarded.swift; sourceTree = "<group>"; };
 		1D4DBFCC2703AA5100160AB3 /* Coordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
 		1D4DBFCE2703AA8200160AB3 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
 		1D4DBFD02703AAFB00160AB3 /* WishListCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WishListCoordinator.swift; sourceTree = "<group>"; };
@@ -216,7 +212,6 @@
 				1D37085626FD1EBA007D9DC6 /* ViewController.swift */,
 				1D4DBFC727039ECA00160AB3 /* WishListViewController.swift */,
 				1D7469322701275700BDEA07 /* ViewCountry+Fetch.swift */,
-				1D2E815C2702716800FF0EA8 /* ViewController+TableView.swift */,
 				1D4DBFC52703938800160AB3 /* ViewController+UIPickerView.swift */,
 				1D931DAB2707D2480024D48F /* ViewController+UISearchBarDelegate.swift */,
 				1D4DBFD22703ADE400160AB3 /* WishViewController+CoreData.swift */,
@@ -279,7 +274,6 @@
 		1D4DBFC92703A9DF00160AB3 /* Coordinator */ = {
 			isa = PBXGroup;
 			children = (
-				1D4DBFCA2703AA3000160AB3 /* Storyboarded.swift */,
 				1D4DBFCC2703AA5100160AB3 /* Coordinator.swift */,
 				1D4DBFCE2703AA8200160AB3 /* MainCoordinator.swift */,
 				1D4DBFD02703AAFB00160AB3 /* WishListCoordinator.swift */,
@@ -596,7 +590,6 @@
 				1D74692A2700FF0800BDEA07 /* MainTableViewCell.swift in Sources */,
 				1D4DBFD12703AAFB00160AB3 /* WishListCoordinator.swift in Sources */,
 				1D4DBFC427037E9800160AB3 /* MainTableViewCell+CoreData.swift in Sources */,
-				1D2E815D2702716800FF0EA8 /* ViewController+TableView.swift in Sources */,
 				1D4DBFC827039ECA00160AB3 /* WishListViewController.swift in Sources */,
 				1D4DBFCF2703AA8200160AB3 /* MainCoordinator.swift in Sources */,
 				1D931DAC2707D2480024D48F /* ViewController+UISearchBarDelegate.swift in Sources */,
@@ -612,7 +605,6 @@
 				1D2E815F27028E9900FF0EA8 /* UIPickerView+Extension.swift in Sources */,
 				1D4D0D3526FE07EC002BA22E /* UIButton+Extension.swift in Sources */,
 				1D37085D26FD1EBA007D9DC6 /* NewsApp.xcdatamodeld in Sources */,
-				1D4DBFCB2703AA3000160AB3 /* Storyboarded.swift in Sources */,
 				1D89221A26FF1FA900104A19 /* API.swift in Sources */,
 				1DCD7EFA26FE8B0400BD8D6E /* NewsArticleModel.swift in Sources */,
 			);

@@ -13,7 +13,6 @@ struct ArticlesFilterViewModel {
     var name: String?
     var author, title, description, urlToImage, url, publishedAt, content: String?
     
-// Dependency Injection (DI)
 init(articlesFilterModel: ArticleModel) {
     if let articId = articlesFilterModel.source?.id {
         self.id = articId

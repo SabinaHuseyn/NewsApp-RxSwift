@@ -13,7 +13,6 @@ struct NewsFilterViewModel {
 let country: String
 let id, name, description, category, url, language: String
 
-// Dependency Injection (DI)
 init(newsFilterModel: NewsFilterModel) {
     self.country = newsFilterModel.country!
     self.id = newsFilterModel.id!

@@ -7,54 +7,60 @@
 
 import Foundation
 import UIKit
+import RxSwift
+import RxCocoa
 
 extension ViewController {
 
      func fetchCountry(country: String) {
-         countrySearched = true
-         categorySearched = false
-         sourcesSearched = false
+         articlePicked = true
          searchbarSearched = false
-         publishedDateSearched = false
-         Service.shared.fetchNewsCountry(query: country) { news in
-                return DispatchQueue.main.async {
-                    self.articlesCountryViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
-                    self.mainTableView.reloadData()
-                    self.refreshControl.endRefreshing()
-                
+         let queryParams: [URLQueryItem] = [
+            URLQueryItem(name: "country", value: country),
+            URLQueryItem(name: "apiKey", value: API.apiKey),
+        ]
+         Service.shared.fetchNewsForTableview(query: queryParams) { news in
+                 DispatchQueue.main.async {
+                    var array = self.articlesViewModels.value
+                    array.removeAll()
+                    let newArray = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
+                    self.articlesViewModels.accept(newArray)
             }
 
         }
     }
     
     func fetchSource(source: String) {
-        countrySearched = false
-        categorySearched = false
-        sourcesSearched = true
+        articlePicked = true
         searchbarSearched = false
-        publishedDateSearched = false
-       Service.shared.fetchNewsSource(query: source) { news in
+        let queryParams: [URLQueryItem] = [
+           URLQueryItem(name: "sources", value: source),
+           URLQueryItem(name: "apiKey", value: API.apiKey),
+       ]
+       Service.shared.fetchNewsForTableview(query: queryParams) { news in
                DispatchQueue.main.async {
-                   self.articlesSourcesViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
-                   self.mainTableView.reloadData()
-                   self.refreshControl.endRefreshing()
-           }
+                   var array = self.articlesViewModels.value
+                   array.removeAll()
+                   let newArray = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
+                   self.articlesViewModels.accept(newArray)
+               }
        }
    }
     
     func fetchCategory(category: String) {
-        countrySearched = false
-        categorySearched = true
-        sourcesSearched = false
+        articlePicked = true
         searchbarSearched = false
-        publishedDateSearched = false
-       Service.shared.fetchNewsCategory(query: category) { news in
+        let queryParams: [URLQueryItem] = [
+           URLQueryItem(name: "category", value: category),
+           URLQueryItem(name: "apiKey", value: API.apiKey),
+       ]
+       Service.shared.fetchNewsForTableview(query: queryParams) { news in
            DispatchQueue.main.async {
-               self.articlesCategoryViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
-               self.mainTableView.reloadData()
-               self.refreshControl.endRefreshing()
-           
-       }
+               var array = self.articlesViewModels.value
+               array.removeAll()
+               let newArray = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
+               self.articlesViewModels.accept(newArray)
+           }
    }
 }
     

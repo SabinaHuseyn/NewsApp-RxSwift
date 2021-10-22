@@ -8,18 +8,15 @@
 import UIKit
 import AlamofireImage
 import CoreData
-//protocol GetList {
-//    func getData(list: [NewsFilterViewModel])
-//}
+import RxSwift
+import RxCocoa
 
 class ViewController: UIViewController, WishDelegate {
     
-//    MARK: - IBOUTLETS
     lazy var searchBar: UISearchBar = UISearchBar(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
     var newsFilterViewModels = [NewsFilterViewModel]()
-    var articlesCountryViewModels = [ArticlesFilterViewModel]()
-    var articlesCategoryViewModels = [ArticlesFilterViewModel]()
-    var articlesSourcesViewModels = [ArticlesFilterViewModel]()
+    var articlesViewModels = BehaviorRelay<[ArticlesFilterViewModel]>(value: [])
+    let disposeBag = DisposeBag()
     var savedTitles: [WishList] = []
     var mainTableView: UITableView!
     var countryPickerView = UIPickerView()
@@ -43,10 +40,7 @@ class ViewController: UIViewController, WishDelegate {
     var previousRun = Date()
     let minInterval = 0.05
     var currentPage = 1
-    var countrySearched = false
-    var categorySearched = false
-    var sourcesSearched = false
-    var publishedDateSearched = false
+    var articlePicked = false
     var searchbarSearched = false
     var shouldShowLoadingCell = false
     
@@ -113,6 +107,8 @@ class ViewController: UIViewController, WishDelegate {
         setupCountryPickerView()
         setupCategoryPickerView()
         setupSourcePickerView()
+        setupMainCell()
+        setupCellTapHandling()
 //        clearCoreDataStore()
 
     }
@@ -132,7 +128,7 @@ class ViewController: UIViewController, WishDelegate {
     
 //    MARK: - Fetch Data
     func fetchData() {
-       Service.shared.fetchNews { (news, err) in
+       Service.shared.fetchNewsForPickerView{ (news, err) in
            if let err = err {
                print("Failed to fetch news:", err)
                return
@@ -205,8 +201,8 @@ class ViewController: UIViewController, WishDelegate {
         mainTableView.tintColor = .textBlue
         mainTableView.estimatedRowHeight = 200
         mainTableView.register(UINib(nibName: "MainTableViewCell", bundle: nil), forCellReuseIdentifier: "MainTableViewCell")
-        mainTableView.dataSource = self
-        mainTableView.delegate = self
+//        mainTableView.dataSource = self
+//        mainTableView.delegate = self
         self.view.addSubview(mainTableView)
         self.mainTableView.tableFooterView = refreshControl
         mainTableView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
@@ -259,7 +255,7 @@ class ViewController: UIViewController, WishDelegate {
            stackViewAll.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor, constant: standardSpacing),
            ])
         }
-        stackViewAll.rightAnchor.constraint(equalTo: view.rightAnchor, constant: 10)
+        stackViewAll.rightAnchor.constraint(equalTo: view.rightAnchor, constant: 10).isActive = true
         stackViewAll.addArrangedSubview(btnCountry)
         stackViewAll.addArrangedSubview(btnCategory)
         stackViewAll.addArrangedSubview(btnSource)
@@ -337,4 +333,42 @@ class ViewController: UIViewController, WishDelegate {
             sourcePickerView.isHidden = true
         }
      }
+//   MARK: Rx Setup
+    
+    func setupMainCell() {
+        articlesViewModels
+          .bind(to: mainTableView
+            .rx
+            .items(cellIdentifier: "MainTableViewCell",
+                   cellType: MainTableViewCell.self)) { row, article, cell in
+              if self.articlePicked == true {
+                  cell.populateCell(articlesFilterViewModel: article)
+                  if let img = article.urlToImage {
+                      if let cellUrl = URL(string: img) {
+                          cell.articleImg.af.setImage(withURL: cellUrl)
+                      }
+                  }
+                  let newsTitle = article.title
+                  if cell.checkCoreDataForExistingWish(newsTitle!) {
+                         cell.likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
+                     } else {
+                         cell.likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
+                     }
+          }
+          }
+          .disposed(by: disposeBag)
+    }
+    
+    func setupCellTapHandling() {
+    mainTableView.rx.modelSelected(ArticlesFilterViewModel.self)
+        .map{ $0.url }
+        .subscribe(onNext: { [weak self] url in
+           guard let url = url else {
+             return
+           }
+            self?.mainCoordinator?.detailShow(url)
+     }).disposed(by: disposeBag)
+}
+    
+
 }

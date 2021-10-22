@@ -53,11 +53,11 @@ extension ViewController: UISearchBarDelegate {
     }
     
     func textSearchChange(_ sender: String) {
-        countrySearched = false
-        categorySearched = false
-        sourcesSearched = false
+        articlePicked = false
+//        categorySearched = false
+//        sourcesSearched = false
         searchbarSearched = true
-        publishedDateSearched = false
+//        publishedDateSearched = false
         Service.shared.fetchSearch(query: sender) { news in
             return DispatchQueue.main.async {
                 self.articlesSearchViewModels = news.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
