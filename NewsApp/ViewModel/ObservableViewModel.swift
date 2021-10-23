@@ -55,8 +55,7 @@ class ObservableViewModel{
         }
     }
     
-    func fetchNews(query: [URLQueryItem]) -> Observable<[ArticlesFilterViewModel]> {
-        
+    func observableFetch(query: [URLQueryItem]) -> Observable<[ArticlesFilterViewModel]> {
         return Observable.create { observer in
             Service.shared.fetchNewsForTableview(query: query){ result in
                 let newArray = result.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
@@ -66,6 +65,18 @@ class ObservableViewModel{
             return Disposables.create()
         }
     }
+    
+    func fetchNews(query: [URLQueryItem]) -> Observable<[ArticlesFilterViewModel]> {
+        return observableFetch(query: query)
+    }
+    
+    func textSearchChange(_ sender: String) -> Observable<[ArticlesFilterViewModel]> {
+        let queryParams: [URLQueryItem] = [
+            URLQueryItem(name: "q", value: sender),
+            URLQueryItem(name: "apiKey", value: API.apiKey),
+        ]
+       return observableFetch(query: queryParams)
+        }
     
 }
 

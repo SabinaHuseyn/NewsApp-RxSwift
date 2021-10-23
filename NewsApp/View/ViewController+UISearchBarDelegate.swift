@@ -5,24 +5,13 @@
 //  Created by Sabina Huseynova on 02.10.21.
 //
 
-import Foundation
-import UIKit
-
-extension ViewController: UISearchBarDelegate {
-    
-    func setupSearch() {
-        searchBar.delegate = self
-        searchController.hidesNavigationBarDuringPresentation = false
-        searchController.searchBar.showsCancelButton = false
-        searchBar.placeholder = "Search"
-        searchController.obscuresBackgroundDuringPresentation = false
-        searchController.dimsBackgroundDuringPresentation = false
-        searchController.searchBar.sizeToFit()
-        searchController.loadViewIfNeeded()
-        definesPresentationContext = true
-    }
-    
-}
+//import Foundation
+//import UIKit
+//
+//extension ViewController: UISearchBarDelegate {
+//    
+//    
+//}
 //    func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool {
 //        let noOffset = UIOffset(horizontal: 0, vertical: 0)
 //        searchBar.setPositionAdjustment(noOffset, for: .search)

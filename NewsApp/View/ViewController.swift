@@ -109,6 +109,7 @@ class ViewController: UIViewController, WishDelegate {
         setupSourcePickerView()
         setupMainCell()
         setupCellTapHandling()
+        setupSearching()
 //        clearCoreDataStore()
 
     }
@@ -282,6 +283,18 @@ class ViewController: UIViewController, WishDelegate {
         self.mainTableView.tableFooterView = spinner
     }
     
+    func setupSearch() {
+//        searchBar.delegate = self
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.searchBar.showsCancelButton = false
+        searchBar.placeholder = "Search"
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.dimsBackgroundDuringPresentation = false
+        searchController.searchBar.sizeToFit()
+        searchController.loadViewIfNeeded()
+        definesPresentationContext = true
+    }
+    
 //    MARK: - CoreDATA
     func getSavedWishes() {
         
@@ -371,7 +384,7 @@ class ViewController: UIViewController, WishDelegate {
      }).disposed(by: disposeBag)
 }
     
-    func rxSetup() {
+    func setupSearching() {
       let searchResults = searchBar.rx.text.orEmpty
         .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
         .distinctUntilChanged()
@@ -379,7 +392,9 @@ class ViewController: UIViewController, WishDelegate {
             if query.isEmpty {
              return .just([])
             }
-            return textSearchChange(query)
+            self.articlePicked = false
+            self.searchbarSearched = true
+            return ObservableViewModel.shared.textSearchChange(query)
             }
             .observe(on: MainScheduler.instance)
 

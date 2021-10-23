@@ -55,16 +55,5 @@ extension ViewController {
         
         observableFetch(query: queryParams)
     }
-    
-    func textSearchChange(_ sender: String) {
-        articlePicked = false
-        searchbarSearched = true
-        let queryParams: [URLQueryItem] = [
-            URLQueryItem(name: "q", value: sender),
-            URLQueryItem(name: "apiKey", value: API.apiKey),
-        ]
-        
-        observableFetch(query: queryParams)
-        }
 }
 
