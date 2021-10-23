@@ -25,7 +25,7 @@ class MainTableViewCell: UITableViewCell {
     var wishSaved: Bool!
     var title: String?
     var wishDelegate: WishDelegate?
-    var articlesFilterViewModel: ArticlesFilterViewModel!
+    var articlesFilterViewModel: ObservableViewModel.ArticlesFilterViewModel!
     
     override func prepareForReuse() {
         super.prepareForReuse()
@@ -33,7 +33,7 @@ class MainTableViewCell: UITableViewCell {
         self.articleImg.image = nil
     }
      
-    func populateCell(articlesFilterViewModel: ArticlesFilterViewModel) {
+    func populateCell(articlesFilterViewModel: ObservableViewModel.ArticlesFilterViewModel) {
         guard let artName = articlesFilterViewModel.name else {return}
               self.sourceLbl?.text = artName
         guard let artAuthor = articlesFilterViewModel.author else {return}

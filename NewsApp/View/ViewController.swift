@@ -15,7 +15,7 @@ class ViewController: UIViewController, WishDelegate {
     
     lazy var searchBar: UISearchBar = UISearchBar(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
     var newsFilterViewModels = [NewsFilterViewModel]()
-    var articlesViewModels = BehaviorRelay<[ArticlesFilterViewModel]>(value: [])
+    var articlesViewModels = BehaviorRelay<[ObservableViewModel.ArticlesFilterViewModel]>(value: [])
     let disposeBag = DisposeBag()
     var savedTitles: [WishList] = []
     var mainTableView: UITableView!
@@ -31,7 +31,7 @@ class ViewController: UIViewController, WishDelegate {
     weak var mainCoordinator: MainCoordinator?
     let favBtn = UIButton()
     var offset = UIOffset()
-    var articlesSearchViewModels:[ArticlesFilterViewModel]? {
+    var articlesSearchViewModels:[ObservableViewModel.ArticlesFilterViewModel]? {
            didSet {
                mainTableView.reloadData()
            }
@@ -337,6 +337,7 @@ class ViewController: UIViewController, WishDelegate {
     
     func setupMainCell() {
         articlesViewModels
+          .observe(on: MainScheduler.instance)
           .bind(to: mainTableView
             .rx
             .items(cellIdentifier: "MainTableViewCell",
@@ -360,7 +361,7 @@ class ViewController: UIViewController, WishDelegate {
     }
     
     func setupCellTapHandling() {
-    mainTableView.rx.modelSelected(ArticlesFilterViewModel.self)
+        mainTableView.rx.modelSelected(ObservableViewModel.ArticlesFilterViewModel.self)
         .map{ $0.url }
         .subscribe(onNext: { [weak self] url in
            guard let url = url else {
@@ -370,5 +371,40 @@ class ViewController: UIViewController, WishDelegate {
      }).disposed(by: disposeBag)
 }
     
+    func rxSetup() {
+      let searchResults = searchBar.rx.text.orEmpty
+        .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
+        .distinctUntilChanged()
+        .flatMapLatest { query -> Observable<[ObservableViewModel.ArticlesFilterViewModel]> in
+            if query.isEmpty {
+             return .just([])
+            }
+            return textSearchChange(query)
+            }
+            .observe(on: MainScheduler.instance)
 
+        searchResults
+            .observe(on: MainScheduler.instance)
+            .bind(to: mainTableView
+            .rx
+            .items(cellIdentifier: "MainTableViewCell",
+                     cellType: MainTableViewCell.self)) { row, article, cell in
+                if self.articlePicked == true {
+                    cell.populateCell(articlesFilterViewModel: article)
+                    if let img = article.urlToImage {
+                        if let cellUrl = URL(string: img) {
+                            cell.articleImg.af.setImage(withURL: cellUrl)
+                        }
+                    }
+                    let newsTitle = article.title
+                    if cell.checkCoreDataForExistingWish(newsTitle!) {
+                           cell.likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
+                       } else {
+                           cell.likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
+                       }
+            }
+            }
+            .disposed(by: disposeBag)
+
+    }
 }

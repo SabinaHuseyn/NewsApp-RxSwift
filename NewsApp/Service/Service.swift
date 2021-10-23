@@ -7,7 +7,7 @@
 
 import Foundation
 import Alamofire
-    
+import RxSwift
 
 class Service {
 
@@ -36,7 +36,7 @@ class Service {
             }.resume()
     }
     
-    func fetchNewsForTableview(query: [URLQueryItem], page: Int = 1, completion: @escaping ([ArticleModel]) -> Void) {
+    func fetchNewsForTableview(query: [URLQueryItem], completion: @escaping ([ArticleModel]) -> Void) {
         // 1
         let url = API.baseUrl
         // 2
@@ -47,7 +47,8 @@ class Service {
         of: ResponseArticle.self) { response in
             print("DATA\(response)")
             guard let items = response.value else {
-            return completion([])
+                return completion([])
+
           }
             DispatchQueue.main.async {
                 completion(items.articles)
@@ -61,11 +62,7 @@ class Service {
         let url = API.baseUrl
       // 2
         var components = URLComponents(string: url)!
-        components.queryItems = [
-            URLQueryItem(name: "q", value: query),
-            URLQueryItem(name: "apiKey", value: API.apiKey),
-        ]
-
+       
         AF.request(components.url! as URLConvertible, method: .get).responseDecodable(
         of: ResponseArticle.self) { response in
             print("DATA\(response)")

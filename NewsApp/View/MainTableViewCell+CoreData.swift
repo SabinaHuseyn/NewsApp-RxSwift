@@ -30,7 +30,7 @@ extension MainTableViewCell {
                
            }
            
-    func saveWishToCoreData(_ list: ArticlesFilterViewModel) {
+    func saveWishToCoreData(_ list: ObservableViewModel.ArticlesFilterViewModel) {
         let context = persistenceManager.context
         let newWish = NSEntityDescription.insertNewObject(forEntityName: "WishList", into: context)
             

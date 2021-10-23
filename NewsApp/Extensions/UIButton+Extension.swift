@@ -14,11 +14,11 @@ import UIKit
         self.setImage(image, for: .normal)
         self.imageView?.contentMode = .scaleAspectFit
         self.contentVerticalAlignment = .fill
-        self.semanticContentAttribute = .forceRightToLeft
+        self.semanticContentAttribute = .unspecified
 
-        self.contentHorizontalAlignment = .right
-        self.imageEdgeInsets = UIEdgeInsets(top: 5.0, left: 5.0, bottom: 5.0, right: 50.0)
-       
+        self.contentHorizontalAlignment = .left
+        self.imageEdgeInsets = UIEdgeInsets(top: 5.0, left: 200.0, bottom: 5.0, right: 5.0)
+
       }
     
     func setBtn(_ name: String){
