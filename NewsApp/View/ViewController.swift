@@ -14,7 +14,8 @@ import RxCocoa
 class ViewController: UIViewController, WishDelegate {
     
     lazy var searchBar: UISearchBar = UISearchBar(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
-    var newsFilterViewModels = [NewsFilterViewModel]()
+    let searchController = UISearchController(searchResultsController: nil)
+    var newsViewModels = BehaviorRelay<[ObservableNewsViewModel.NewsFilterViewModel]>(value: [])
     var articlesViewModels = BehaviorRelay<[ObservableViewModel.ArticlesFilterViewModel]>(value: [])
     let disposeBag = DisposeBag()
     var savedTitles: [WishList] = []
@@ -22,27 +23,19 @@ class ViewController: UIViewController, WishDelegate {
     var countryPickerView = UIPickerView()
     var categoryPickerView = UIPickerView()
     var sourcePickerView = UIPickerView()
-    var newsCountry = [NewsFilterViewModel]()
-    var newsCategory = [NewsFilterViewModel]()
-    var newsSource = [NewsFilterViewModel]()
+    var newsCountry = BehaviorRelay<[String]>(value: [])
+    var newsCategory = BehaviorRelay<[String]>(value: [])
+    var newsSource = BehaviorRelay<[String]>(value: [])
     var spinner = UIActivityIndicatorView()
     var container: NSPersistentContainer!
     let persistenceManager = PersistenceManager.shared
     weak var mainCoordinator: MainCoordinator?
     let favBtn = UIButton()
     var offset = UIOffset()
-    var articlesSearchViewModels:[ObservableViewModel.ArticlesFilterViewModel]? {
-           didSet {
-               mainTableView.reloadData()
-           }
-       }
-    let searchController = UISearchController(searchResultsController: nil)
+
     var previousRun = Date()
     let minInterval = 0.05
     var currentPage = 1
-    var articlePicked = false
-    var searchbarSearched = false
-    var shouldShowLoadingCell = false
     
     let badgeCount: UILabel = {
         var badge = UILabel()
@@ -99,7 +92,6 @@ class ViewController: UIViewController, WishDelegate {
         view.backgroundColor = .white
         favBtn.addSubview(badgeCount)
         setupSearch()
-        fetchData()
         getSavedWishes()
         setupStackView()
         setupBtn()
@@ -107,9 +99,11 @@ class ViewController: UIViewController, WishDelegate {
         setupCountryPickerView()
         setupCategoryPickerView()
         setupSourcePickerView()
+        filterNews()
+//        filterCountryForPickerView()
+        setupSearching()
         setupMainCell()
         setupCellTapHandling()
-        setupSearching()
 //        clearCoreDataStore()
 
     }
@@ -127,25 +121,6 @@ class ViewController: UIViewController, WishDelegate {
         }
     }
     
-//    MARK: - Fetch Data
-    func fetchData() {
-       Service.shared.fetchNewsForPickerView{ (news, err) in
-           if let err = err {
-               print("Failed to fetch news:", err)
-               return
-           }
-           self.newsFilterViewModels = news?.map({return NewsFilterViewModel(newsFilterModel: $0)}) ?? []
-           DispatchQueue.main.async {
-               self.filterSource()
-               self.filterCountry()
-               self.filterCategory()
-               self.mainTableView.reloadData()
-               self.countryPickerView.reloadAllComponents()
-               self.categoryPickerView.reloadAllComponents()
-               self.sourcePickerView.reloadAllComponents()
-           }
-       }
-   }
 //    MARK: - CLEAR CORE DATA
 //    func clearCoreDataStore() {
 //            let context = persistenceManager.context
@@ -161,35 +136,21 @@ class ViewController: UIViewController, WishDelegate {
 //            }
 //        }
     
-    func filterCountry() {
-        var seen = Set<String>()
-        for news in newsFilterViewModels {
-            if !seen.contains(news.country) {
-                newsCountry.append(news)
-                seen.insert(news.country)
-            }
-        }
-    }
     
-    func filterCategory() {
-        var seen = Set<String>()
-        for news in newsFilterViewModels {
-            if !seen.contains(news.category) {
-                newsCategory.append(news)
-                seen.insert(news.category)
-            }
-        }
+    func filterNews() {
+     ObservableNewsViewModel.shared.fetchNewsForPicker()
+     .observe(on: MainScheduler.instance)
+     .subscribe(onNext: { data in
+         let countryArray = self.newsViewModels.value.map({$0.country})
+         let categoryArray = self.newsViewModels.value.map({$0.category})
+         let sourceArray = self.newsViewModels.value.map({$0.name})
+         self.newsCountry.accept(countryArray)
+         self.newsCategory.accept(categoryArray)
+         self.newsSource.accept(sourceArray)
+     })
+     .disposed(by: disposeBag)
     }
-    func filterSource() {
-        var seen = Set<String>()
-        for news in newsFilterViewModels {
-            if !seen.contains(news.name) {
-                newsSource.append(news)
-                seen.insert(news.name)
-            }
-        }
-    }
-    
+
     // MARK: - SETUP FUNC
    
     func setupMainTableView() {
@@ -208,6 +169,8 @@ class ViewController: UIViewController, WishDelegate {
         self.mainTableView.tableFooterView = refreshControl
         mainTableView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
         mainTableView.topAnchor.constraint(equalTo: stackViewAll.bottomAnchor, constant: 10).isActive = true
+        self.mainTableView.keyboardDismissMode = .onDrag
+
     }
 
     func setupCountryPickerView() {
@@ -349,28 +312,27 @@ class ViewController: UIViewController, WishDelegate {
 //   MARK: Rx Setup
     
     func setupMainCell() {
-        articlesViewModels
-          .observe(on: MainScheduler.instance)
-          .bind(to: mainTableView
-            .rx
-            .items(cellIdentifier: "MainTableViewCell",
-                   cellType: MainTableViewCell.self)) { row, article, cell in
-              if self.articlePicked == true {
-                  cell.populateCell(articlesFilterViewModel: article)
-                  if let img = article.urlToImage {
-                      if let cellUrl = URL(string: img) {
-                          cell.articleImg.af.setImage(withURL: cellUrl)
-                      }
-                  }
-                  let newsTitle = article.title
-                  if cell.checkCoreDataForExistingWish(newsTitle!) {
-                         cell.likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
-                     } else {
-                         cell.likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
-                     }
-          }
-          }
-          .disposed(by: disposeBag)
+
+            articlesViewModels
+                .observe(on: MainScheduler.instance)
+                .bind(to: mainTableView
+                        .rx
+                        .items(cellIdentifier: "MainTableViewCell",
+                               cellType: MainTableViewCell.self)) { row, article, cell in
+                        cell.populateCell(articlesFilterViewModel: article)
+                        if let img = article.urlToImage {
+                            if let cellUrl = URL(string: img) {
+                                cell.articleImg.af.setImage(withURL: cellUrl)
+                            }
+                        }
+                        let newsTitle = article.title
+                        if cell.checkCoreDataForExistingWish(newsTitle!) {
+                            cell.likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
+                        } else {
+                            cell.likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
+                        }
+                }
+                               .disposed(by: disposeBag)
     }
     
     func setupCellTapHandling() {
@@ -385,41 +347,51 @@ class ViewController: UIViewController, WishDelegate {
 }
     
     func setupSearching() {
-      let searchResults = searchBar.rx.text.orEmpty
+
+        searchBar
+        .rx.text.orEmpty
         .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
         .distinctUntilChanged()
         .flatMapLatest { query -> Observable<[ObservableViewModel.ArticlesFilterViewModel]> in
             if query.isEmpty {
              return .just([])
             }
-            self.articlePicked = false
-            self.searchbarSearched = true
             return ObservableViewModel.shared.textSearchChange(query)
             }
             .observe(on: MainScheduler.instance)
-
-        searchResults
-            .observe(on: MainScheduler.instance)
-            .bind(to: mainTableView
-            .rx
-            .items(cellIdentifier: "MainTableViewCell",
-                     cellType: MainTableViewCell.self)) { row, article, cell in
-                if self.articlePicked == true {
-                    cell.populateCell(articlesFilterViewModel: article)
-                    if let img = article.urlToImage {
-                        if let cellUrl = URL(string: img) {
-                            cell.articleImg.af.setImage(withURL: cellUrl)
-                        }
-                    }
-                    let newsTitle = article.title
-                    if cell.checkCoreDataForExistingWish(newsTitle!) {
-                           cell.likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
-                       } else {
-                           cell.likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
-                       }
-            }
-            }
+            .subscribe(onNext: { data in
+                var array = self.articlesViewModels.value
+                array.removeAll()
+              self.articlesViewModels.accept(data)
+            })
             .disposed(by: disposeBag)
-
-    }
+           }
 }
+//        if self.searchbarSearched == true {
+//
+//            searchResults
+//                .observe(on: MainScheduler.instance)
+//                .bind(to: mainTableView
+//                        .rx
+//                        .items(cellIdentifier: "MainTableViewCell",
+//                               cellType: MainTableViewCell.self)) { row, article, cell in
+//                    if self.articlePicked == true {
+//                        cell.populateCell(articlesFilterViewModel: article)
+//                        if let img = article.urlToImage {
+//                            if let cellUrl = URL(string: img) {
+//                                cell.articleImg.af.setImage(withURL: cellUrl)
+//                            }
+//                        }
+//                        let newsTitle = article.title
+//                        if cell.checkCoreDataForExistingWish(newsTitle!) {
+//                            cell.likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
+//                        } else {
+//                            cell.likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
+//                        }
+//                    }
+//                }
+//                               .disposed(by: disposeBag)
+    
+//
+//    }
+
