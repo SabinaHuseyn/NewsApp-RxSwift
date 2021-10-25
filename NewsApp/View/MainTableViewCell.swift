@@ -26,7 +26,8 @@ class MainTableViewCell: UITableViewCell {
     var title: String?
     var wishDelegate: WishDelegate?
     var articlesFilterViewModel: ObservableViewModel.ArticlesFilterViewModel!
-    
+    var favNews: WishList?
+
     override func prepareForReuse() {
         super.prepareForReuse()
         self.articleImg.af.cancelImageRequest()
@@ -46,14 +47,25 @@ class MainTableViewCell: UITableViewCell {
         self.articlesFilterViewModel = articlesFilterViewModel
         print("ETO TITLE\(String(describing: self.title))")
     }
+    
+    func populateFav(favNews: WishList) {
+        guard let artName = favNews.name else {return}
+              self.sourceLbl?.text = artName
+        guard let artAuthor = favNews.author else {return}
+        self.authorLbl?.text = artAuthor
+        let artDescription = favNews.description
+        self.descriptionLbl?.text = artDescription
+        guard let newtitle = favNews.title else {return}
+        self.title = newtitle
+        self.titleLbl?.text = newtitle
+        self.favNews = favNews
+        print("ETO TITLE\(String(describing: self.title))")
+    }
             
     @IBAction func clickLike(_ sender: UIButton) {
-        saveWishToFavorites()
-        wishDelegate?.getSavedWishes()
-        let name = Notification.Name("isLiked")
-        NotificationCenter.default.post(name: name, object: nil)
         
-            }
+        
+    }
 
         override func awakeFromNib() {
             super.awakeFromNib()

@@ -11,31 +11,26 @@ import CoreData
 import RxSwift
 import RxCocoa
 
-class ViewController: UIViewController, WishDelegate {
+class ViewController: UIViewController {
     
     lazy var searchBar: UISearchBar = UISearchBar(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
     let searchController = UISearchController(searchResultsController: nil)
-    var newsViewModels = BehaviorRelay<[ObservableNewsViewModel.NewsFilterViewModel]>(value: [])
     var articlesViewModels = BehaviorRelay<[ObservableViewModel.ArticlesFilterViewModel]>(value: [])
+    var newsCountry = BehaviorRelay<[String]>(value: [])
+    var newsCategory = BehaviorRelay<[String]>(value: [])
+    var newsSource = BehaviorRelay<[String]>(value: [])
+    var savedNews = BehaviorRelay<[WishList]>(value: [])
     let disposeBag = DisposeBag()
-    var savedTitles: [WishList] = []
     var mainTableView: UITableView!
     var countryPickerView = UIPickerView()
     var categoryPickerView = UIPickerView()
     var sourcePickerView = UIPickerView()
-    var newsCountry = BehaviorRelay<[String]>(value: [])
-    var newsCategory = BehaviorRelay<[String]>(value: [])
-    var newsSource = BehaviorRelay<[String]>(value: [])
     var spinner = UIActivityIndicatorView()
     var container: NSPersistentContainer!
     let persistenceManager = PersistenceManager.shared
     weak var mainCoordinator: MainCoordinator?
     let favBtn = UIButton()
-    var offset = UIOffset()
-
-    var previousRun = Date()
-    let minInterval = 0.05
-    var currentPage = 1
+    //    var offset = UIOffset()
     
     let badgeCount: UILabel = {
         var badge = UILabel()
@@ -49,21 +44,21 @@ class ViewController: UIViewController, WishDelegate {
         button.setBtn("Country")
         return button
     }()
-
+    
     let btnCategory: UIButton = {
         let button = UIButton()
         button.setBtn("Category")
         return button
-
+        
     }()
-
+    
     let btnSource: UIButton = {
         let button = UIButton()
         button.setBtn("Source")
         return button
-
+        
     }()
-
+    
     let stackViewAll: UIStackView = {
         let stackView = UIStackView()
         stackView.axis  = NSLayoutConstraint.Axis.vertical
@@ -74,16 +69,6 @@ class ViewController: UIViewController, WishDelegate {
         return stackView
     }()
     
-    lazy var refreshControl: UIRefreshControl = {
-            let refreshControl = UIRefreshControl()
-            refreshControl.addTarget(self, action:
-                                        #selector(handleRefresh(_:)),
-                                     for: UIControl.Event.valueChanged)
-        refreshControl.tintColor = .malina
-        refreshControl.attributedTitle = NSAttributedString(string: "Loading")
-            return refreshControl
-        }()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.navigationItem.backButtonTitle = ""
@@ -92,132 +77,125 @@ class ViewController: UIViewController, WishDelegate {
         view.backgroundColor = .white
         favBtn.addSubview(badgeCount)
         setupSearch()
-        getSavedWishes()
+        setupFavs()
         setupStackView()
         setupBtn()
         setupMainTableView()
-        setupCountryPickerView()
-        setupCategoryPickerView()
-        setupSourcePickerView()
+        setupPickerViews()
         filterNews()
-//        filterCountryForPickerView()
+        setupCountryPickerViews()
+        setupCountryPickerTapHandling()
+        setupCategoryPickerViews()
+        setupCategoryPickerTapHandling()
+        setupSourcePickerViews()
+        setupSourcePickerTapHandling()
         setupSearching()
         setupMainCell()
         setupCellTapHandling()
-//        clearCoreDataStore()
-
+        //        clearCoreDataStore()
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
         let leftNavBarButton = UIBarButtonItem(customView:searchBar)
-    self.navigationItem.leftBarButtonItem = leftNavBarButton
+        self.navigationItem.leftBarButtonItem = leftNavBarButton
         let rightNavBarButton = UIBarButtonItem(customView:favBtn)
-    self.navigationItem.rightBarButtonItem = rightNavBarButton
-        DispatchQueue.main.async {
-            self.getSavedWishes()
-            self.mainTableView.reloadData()
+        self.navigationItem.rightBarButtonItem = rightNavBarButton
+        DispatchQueue.main.async{
+            self.setupFavs()
             self.navigationItem.backButtonTitle = ""
-
         }
     }
     
-//    MARK: - CLEAR CORE DATA
-//    func clearCoreDataStore() {
-//            let context = persistenceManager.context
-//            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "WishList")
-//    
-//            let deleteReqest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-//    
-//            do {
-//                try context.execute(deleteReqest)
-//    
-//            } catch {
-//                print(error)
-//            }
-//        }
+//    MARK: - Rx Core Data
     
-    
-    func filterNews() {
-     ObservableNewsViewModel.shared.fetchNewsForPicker()
-     .observe(on: MainScheduler.instance)
-     .subscribe(onNext: { data in
-         let countryArray = self.newsViewModels.value.map({$0.country})
-         let categoryArray = self.newsViewModels.value.map({$0.category})
-         let sourceArray = self.newsViewModels.value.map({$0.name})
-         self.newsCountry.accept(countryArray)
-         self.newsCategory.accept(categoryArray)
-         self.newsSource.accept(sourceArray)
-     })
-     .disposed(by: disposeBag)
+    func setupFavs() {
+        getSavedFavToObservable()
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { data in
+                var array = self.savedNews.value
+                array.removeAll()
+                self.savedNews.accept(data)
+                if self.savedNews.value.count == 0 {
+                    self.badgeCount.isHidden = true
+                } else {
+                    self.badgeCount.isHidden = false
+                    self.badgeCount.text = "\(self.savedNews.value.count)"
+                }
+            })
+            .disposed(by: disposeBag)
     }
-
-    // MARK: - SETUP FUNC
-   
+    
+    func getSavedFavToObservable() -> Observable<[WishList]>{
+        return Observable.create { observer in
+            let result = self.persistenceManager.fetch(WishList.self)
+            let newArray = result.map({return $0})
+            observer.onNext(newArray)
+            observer.onCompleted()
+            return Disposables.create()
+        }
+    }
+    
+    //    MARK: - CLEAR CORE DATA
+    //    func clearCoreDataStore() {
+    //            let context = persistenceManager.context
+    //            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "WishList")
+    //
+    //            let deleteReqest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+    //
+    //            do {
+    //                try context.execute(deleteReqest)
+    //
+    //            } catch {
+    //                print(error)
+    //            }
+    //        }
+    
+    // MARK: - UI SETUP    
     func setupMainTableView() {
         let barHeight: CGFloat = UIApplication.shared.statusBarFrame.size.height + 210
         let displayWidth: CGFloat = self.view.frame.width
         let displayHeight: CGFloat = self.view.frame.height
-
+        
         mainTableView = UITableView(frame: CGRect(x: 0, y: barHeight, width: displayWidth, height: displayHeight - barHeight))
         mainTableView.separatorColor = .textBlue
         mainTableView.tintColor = .textBlue
         mainTableView.estimatedRowHeight = 200
         mainTableView.register(UINib(nibName: "MainTableViewCell", bundle: nil), forCellReuseIdentifier: "MainTableViewCell")
-//        mainTableView.dataSource = self
-//        mainTableView.delegate = self
         self.view.addSubview(mainTableView)
-        self.mainTableView.tableFooterView = refreshControl
         mainTableView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
         mainTableView.topAnchor.constraint(equalTo: stackViewAll.bottomAnchor, constant: 10).isActive = true
         self.mainTableView.keyboardDismissMode = .onDrag
-
-    }
-
-    func setupCountryPickerView() {
-        countryPickerView.delegate = self
-        countryPickerView.backgroundColor = .backGrey
-        countryPickerView.layer.cornerRadius = 10
-        countryPickerView.isHidden = true
-        countryPickerView.dataSource = self
-        self.view.addSubview(countryPickerView)
-        countryPickerView.center = view.center
-
-    }
-
-    func setupCategoryPickerView(){
-        categoryPickerView.delegate = self
-        categoryPickerView.backgroundColor = .backGrey
-        categoryPickerView.layer.cornerRadius = 10
-        categoryPickerView.isHidden = true
-        categoryPickerView.dataSource = self
-        self.view.addSubview(categoryPickerView)
-        categoryPickerView.center = view.center
-
+        
     }
     
-    func setupSourcePickerView(){
-        sourcePickerView.delegate = self
-        sourcePickerView.backgroundColor = .backGrey
-        sourcePickerView.layer.cornerRadius = 10
-        sourcePickerView.isHidden = true
-        sourcePickerView.dataSource = self
-        self.view.addSubview(sourcePickerView)
+    func setupPickerViews() {
+        countryPickerView.center = view.center
+        countryPickerView.setup()
+        self.view.addSubview(countryPickerView)
+        categoryPickerView.center = view.center
+        categoryPickerView.setup()
+        categoryPickerView.isHidden = true
+        self.view.addSubview(categoryPickerView)
         sourcePickerView.center = view.center
+        sourcePickerView.setup()
+        sourcePickerView.isHidden = true
+        self.view.addSubview(sourcePickerView)
     }
     
     func setupStackView() {
         stackViewAll.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         stackViewAll.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 10.0).isActive = true
         if #available(iOS 11, *) {
-          let guide = view.safeAreaLayoutGuide
-          NSLayoutConstraint.activate([
-            stackViewAll.topAnchor.constraint(equalToSystemSpacingBelow: guide.topAnchor, multiplier: 1.0),
-           ])
+            let guide = view.safeAreaLayoutGuide
+            NSLayoutConstraint.activate([
+                stackViewAll.topAnchor.constraint(equalToSystemSpacingBelow: guide.topAnchor, multiplier: 1.0),
+            ])
         } else {
-           let standardSpacing: CGFloat = 8.0
-           NSLayoutConstraint.activate([
-           stackViewAll.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor, constant: standardSpacing),
-           ])
+            let standardSpacing: CGFloat = 8.0
+            NSLayoutConstraint.activate([
+                stackViewAll.topAnchor.constraint(equalTo: topLayoutGuide.bottomAnchor, constant: standardSpacing),
+            ])
         }
         stackViewAll.rightAnchor.constraint(equalTo: view.rightAnchor, constant: 10).isActive = true
         stackViewAll.addArrangedSubview(btnCountry)
@@ -238,16 +216,7 @@ class ViewController: UIViewController, WishDelegate {
         favBtn.addTarget(self, action: #selector(openWishList), for: .touchUpInside)
     }
     
-    func setupSpinner() {
-        spinner.color = .malina
-        spinner.stopAnimating()
-        spinner.hidesWhenStopped = true
-        spinner.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 60)
-        self.mainTableView.tableFooterView = spinner
-    }
-    
     func setupSearch() {
-//        searchBar.delegate = self
         searchController.hidesNavigationBarDuringPresentation = false
         searchController.searchBar.showsCancelButton = false
         searchBar.placeholder = "Search"
@@ -258,140 +227,57 @@ class ViewController: UIViewController, WishDelegate {
         definesPresentationContext = true
     }
     
-//    MARK: - CoreDATA
-    func getSavedWishes() {
-        
-        let savedWishes = persistenceManager.fetch(WishList.self)
-        self.savedTitles = savedWishes
-        DispatchQueue.main.async {
-            self.mainTableView.reloadData()
-//            print(self.badgeCount.text)
-            if self.savedTitles.count == 0 {
-                self.badgeCount.isHidden = true
-            } else {
-                self.badgeCount.isHidden = false
-                self.badgeCount.text = "\(savedWishes.count)"
-            }
-        }
-    }
-//    MARK: - @objc ACTIONS
+    //    MARK: - @objc ACTIONS
     @objc func openWishList() {
         mainCoordinator?.wishClick()
     }
     
-    @objc func handleRefresh(_ sender: AnyObject) {
-       // Code to refresh table view
-        currentPage = 1
-       refreshControl.endRefreshing() // End Refreshing
-    }
-    
-   @objc func countryBtnAct() {
+    @objc func countryBtnAct() {
         print("Button is tapped")
-       if countryPickerView.isHidden == true {
-           countryPickerView.isHidden = false
-       } else{
-           countryPickerView.isHidden = true
-       }
+        if countryPickerView.isHidden == true {
+            countryPickerView.isHidden = false
+        } else{
+            countryPickerView.isHidden = true
+        }
     }
     @objc func categoryBtnAct() {
-         print("Button is tapped")
+        print("Button is tapped")
         if categoryPickerView.isHidden == true {
             categoryPickerView.isHidden = false
         } else{
             categoryPickerView.isHidden = true
         }
-     }
+    }
     @objc func sourceBtnAct() {
-         print("Button is tapped")
+        print("Button is tapped")
         if sourcePickerView.isHidden == true {
             sourcePickerView.isHidden = false
         } else{
             sourcePickerView.isHidden = true
         }
-     }
-//   MARK: Rx Setup
-    
-    func setupMainCell() {
-
-            articlesViewModels
-                .observe(on: MainScheduler.instance)
-                .bind(to: mainTableView
-                        .rx
-                        .items(cellIdentifier: "MainTableViewCell",
-                               cellType: MainTableViewCell.self)) { row, article, cell in
-                        cell.populateCell(articlesFilterViewModel: article)
-                        if let img = article.urlToImage {
-                            if let cellUrl = URL(string: img) {
-                                cell.articleImg.af.setImage(withURL: cellUrl)
-                            }
-                        }
-                        let newsTitle = article.title
-                        if cell.checkCoreDataForExistingWish(newsTitle!) {
-                            cell.likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
-                        } else {
-                            cell.likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
-                        }
-                }
-                               .disposed(by: disposeBag)
     }
-    
-    func setupCellTapHandling() {
-        mainTableView.rx.modelSelected(ObservableViewModel.ArticlesFilterViewModel.self)
-        .map{ $0.url }
-        .subscribe(onNext: { [weak self] url in
-           guard let url = url else {
-             return
-           }
-            self?.mainCoordinator?.detailShow(url)
-     }).disposed(by: disposeBag)
-}
+    //   MARK: Rx Setup
     
     func setupSearching() {
-
+        
         searchBar
-        .rx.text.orEmpty
-        .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
-        .distinctUntilChanged()
-        .flatMapLatest { query -> Observable<[ObservableViewModel.ArticlesFilterViewModel]> in
-            if query.isEmpty {
-             return .just([])
-            }
-            return ObservableViewModel.shared.textSearchChange(query)
+            .rx.text.orEmpty
+            .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
+            .distinctUntilChanged()
+            .flatMapLatest { query -> Observable<[ObservableViewModel.ArticlesFilterViewModel]> in
+                if query.isEmpty {
+                    return .just([])
+                }
+                return ObservableViewModel.shared.textSearchChange(query)
             }
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { data in
                 var array = self.articlesViewModels.value
                 array.removeAll()
-              self.articlesViewModels.accept(data)
+                self.articlesViewModels.accept(data)
             })
             .disposed(by: disposeBag)
-           }
+    }
 }
-//        if self.searchbarSearched == true {
-//
-//            searchResults
-//                .observe(on: MainScheduler.instance)
-//                .bind(to: mainTableView
-//                        .rx
-//                        .items(cellIdentifier: "MainTableViewCell",
-//                               cellType: MainTableViewCell.self)) { row, article, cell in
-//                    if self.articlePicked == true {
-//                        cell.populateCell(articlesFilterViewModel: article)
-//                        if let img = article.urlToImage {
-//                            if let cellUrl = URL(string: img) {
-//                                cell.articleImg.af.setImage(withURL: cellUrl)
-//                            }
-//                        }
-//                        let newsTitle = article.title
-//                        if cell.checkCoreDataForExistingWish(newsTitle!) {
-//                            cell.likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
-//                        } else {
-//                            cell.likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
-//                        }
-//                    }
-//                }
-//                               .disposed(by: disposeBag)
-    
-//
-//    }
+
 

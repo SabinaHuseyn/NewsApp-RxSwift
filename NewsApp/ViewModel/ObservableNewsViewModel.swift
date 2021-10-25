@@ -13,9 +13,9 @@ import RxCocoa
 class ObservableNewsViewModel{
     
     static let shared = ObservableNewsViewModel()
-    static let countryObservable = Observable<[NewsFilterViewModel]>
-    static let categoryObservable = Observable<[NewsFilterViewModel]>
-    static let sourcesObservable = Observable<[NewsFilterViewModel]>
+//    static let countryObservable = Observable<[NewsFilterViewModel]>
+//    static let categoryObservable = Observable<[NewsFilterViewModel]>
+//    static let sourcesObservable = Observable<[NewsFilterViewModel]>
 
     
     struct NewsFilterViewModel: Hashable {
@@ -43,5 +43,6 @@ class ObservableNewsViewModel{
                 observer.onCompleted()
             }
             return Disposables.create()
-        }    }
+        }
+    }
 }

@@ -12,76 +12,87 @@ import RxCocoa
 
 extension ViewController {
     
-    func setupPickerViews() {
-        
-        newsCountry
+    func setupCountryPickerViews() {
+        let filteredNews = newsCountry.asObservable().map { Array(Set($0)) }
+
+        filteredNews
             .observe(on: MainScheduler.instance)
             .bind(to: countryPickerView
                     .rx
-                    .itemTitles){ row, element in
-                return element
+                    .itemAttributedTitles) { (row, element) in
+                return NSAttributedString(string: element)
             }
-                    .disposed(by: disposeBag)
+        .disposed(by: disposeBag)
     }
     
-    func setupPickerTapHandling() {
-        countryPickerView.rx.itemSelected(String)
-            .subscribe(onNext: { [weak self] url in
-                guard let url = url else {
+    func setupCountryPickerTapHandling() {
+        countryPickerView.rx.itemSelected
+            .subscribe(onNext: { [weak self] (row, element) in
+                guard let wSelf = self else {
                     return
                 }
-                self?.mainCoordinator?.detailShow(url)
+                self?.fetchCountry(country: wSelf.newsCountry.value[row])
+                self?.btnCountry.setTitle(wSelf.newsCountry.value[row], for: .normal)
+                self?.btnCategory.setTitle("Category", for: .normal)
+                self?.btnSource.setTitle("Source", for: .normal)
+                self?.countryPickerView.isHidden = true
+                
             }).disposed(by: disposeBag)
     }
-    
-//    func numberOfComponents(in pickerView: UIPickerView) -> Int {
-//        return 1
-//    }
-//
-//    func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-//        switch pickerView {
-//
-//        case countryPickerView:
-//            return newsCountry.count
-//        case categoryPickerView:
-//            return newsCategory.count
-//        case sourcePickerView:
-//            return newsSource.count
-//        default:
-//            break
-//    }
-//        return 0
-//    }
-//
-//    func pickerView(_ pickerView: UIPickerView, attributedTitleForRow row: Int, forComponent component: Int) -> NSAttributedString? {
-//
-//                switch pickerView {
-//                case countryPickerView:
-//                    return NSAttributedString(string: newsCountry[row].country, attributes: [NSAttributedString.Key.foregroundColor: UIColor.textBlue])
-//                case categoryPickerView:
-//                    return NSAttributedString(string: newsCategory[row].category, attributes: [NSAttributedString.Key.foregroundColor: UIColor.textBlue])
-//                case sourcePickerView:
-//                    return NSAttributedString(string: newsSource[row].name, attributes: [NSAttributedString.Key.foregroundColor: UIColor.textBlue])
-//                default:
-//                     break
-//                }
-//        return NSAttributedString(string: "Data")
-//    }
-//    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-//        switch pickerView {
-//        case countryPickerView:
-//            fetchCountry(country: newsCountry[row].country)
-//            btnCountry.setTitle(newsCountry[row].country, for: .normal)
-//            countryPickerView.isHidden = true
-//        case categoryPickerView:
-//            fetchCategory(category: newsCategory[row].category)
-//            btnCategory.setTitle(newsCategory[row].category, for: .normal)
-//            categoryPickerView.isHidden = true
-//        case sourcePickerView:
-//            fetchSource(source: newsSource[row].id)
-//            btnSource.setTitle(newsSource[row].id, for: .normal)
-//            sourcePickerView.isHidden = true
-//          default:
-//            break
-//        }
-//    }
+
+func setupCategoryPickerViews() {
+    let filteredNews = newsCategory.asObservable().map { Array(Set($0)) }
+
+    filteredNews
+        .observe(on: MainScheduler.instance)
+        .bind(to: categoryPickerView
+                .rx
+                .itemAttributedTitles) { (row, element) in
+            return NSAttributedString(string: element)
+        }
+    .disposed(by: disposeBag)
+}
+
+func setupCategoryPickerTapHandling() {
+    categoryPickerView.rx.itemSelected
+        .subscribe(onNext: { [weak self] (row, element) in
+            guard let wSelf = self else {
+                return
+            }
+            self?.fetchCategory(category: wSelf.newsCategory.value[row])
+            self?.btnCategory.setTitle(wSelf.newsCategory.value[row], for: .normal)
+            self?.btnCountry.setTitle("Country", for: .normal)
+            self?.btnSource.setTitle("Source", for: .normal)
+            self?.categoryPickerView.isHidden = true
+            
+        }).disposed(by: disposeBag)
+}
+
+func setupSourcePickerViews() {
+    let filteredNews = newsSource.asObservable().map { Array(Set($0)) }
+
+    filteredNews
+        .observe(on: MainScheduler.instance)
+        .bind(to: sourcePickerView
+                .rx
+                .itemAttributedTitles) { (row, element) in
+            return NSAttributedString(string: element)
+        }
+    .disposed(by: disposeBag)
+}
+
+func setupSourcePickerTapHandling() {
+    sourcePickerView.rx.itemSelected
+        .subscribe(onNext: { [weak self] (row, element) in
+            guard let wSelf = self else {
+                return
+            }
+            self?.fetchSource(source:wSelf.newsSource.value[row])
+            self?.btnSource.setTitle(wSelf.newsSource.value[row], for: .normal)
+            self?.btnCountry.setTitle("Country", for: .normal)
+            self?.btnCategory.setTitle("Category", for: .normal)
+            self?.sourcePickerView.isHidden = true
+            
+        }).disposed(by: disposeBag)
+}
+}

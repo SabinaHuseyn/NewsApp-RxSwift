@@ -12,6 +12,20 @@ import RxCocoa
 
 extension ViewController {
     
+    func filterNews() {
+        ObservableNewsViewModel.shared.fetchNewsForPicker()
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { data in
+                let countryArray = data.map({return $0.country})
+                let categoryArray = data.map({return $0.category})
+                let sourceArray = data.map({return $0.name})
+                self.newsCountry.accept(countryArray)
+                self.newsCategory.accept(categoryArray)
+                self.newsSource.accept(sourceArray)
+            })
+            .disposed(by: disposeBag)
+    }
+    
     func fetchCountry(country: String) {
         let queryParams: [URLQueryItem] = [
             URLQueryItem(name: "country", value: country),
