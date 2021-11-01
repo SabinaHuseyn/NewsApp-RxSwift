@@ -9,11 +9,11 @@ import Foundation
 import UIKit
 import RxSwift
 import RxCocoa
-        
+
 class ObservableViewModel{
     
     static let shared = ObservableViewModel()
-
+    
     struct ArticlesFilterViewModel {
         
         var id: String?
@@ -65,8 +65,8 @@ class ObservableViewModel{
             URLQueryItem(name: "q", value: sender),
             URLQueryItem(name: "apiKey", value: API.apiKey),
         ]
-       return observableFetch(query: queryParams)
-        }
+        return observableFetch(query: queryParams)
+    }
     
     func observableFetch(query: [URLQueryItem]) -> Observable<[ArticlesFilterViewModel]> {
         return Observable.create { observer in
@@ -80,5 +80,5 @@ class ObservableViewModel{
     }
 }
 
-        
+
 

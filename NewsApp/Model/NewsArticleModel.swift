@@ -16,7 +16,7 @@ struct Source: Codable {
         case name = "name"
     }
 }
-    
+
 struct ArticleModel: Codable {
     var source: Source?
     var author: String?
@@ -39,6 +39,6 @@ struct ArticleModel: Codable {
     }
 }
 
-    struct ResponseArticle: Codable {
-        var articles: [ArticleModel]
-    }
+struct ResponseArticle: Codable {
+    var articles: [ArticleModel]
+}

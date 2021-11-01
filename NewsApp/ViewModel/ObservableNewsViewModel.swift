@@ -14,14 +14,9 @@ class ObservableNewsViewModel{
     
     static let shared = ObservableNewsViewModel()
     var observableViewModel = ObservableViewModel()
-
-//    public var newsCountry = BehaviorRelay<[String]>(value: [])
-//    public var newsCategory = BehaviorRelay<[String]>(value: [])
-//    public var newsSource = BehaviorRelay<[String]>(value: [])
     public var articlesViewModels = BehaviorRelay<[ObservableViewModel.ArticlesFilterViewModel]>(value: [])
-
     let disposeBag = DisposeBag()
-
+    
     struct NewsFilterViewModel: Hashable {
         
         let country: String
@@ -35,7 +30,6 @@ class ObservableNewsViewModel{
             self.category = newsFilterModel.category!
             self.url = newsFilterModel.url!
             self.language = newsFilterModel.language!
-            //    print("VIEW MODEL:\(self.country)")
         }
     }
     

@@ -47,7 +47,6 @@ class MainTableViewCell: UITableViewCell {
         self.title = newtitle
         self.titleLbl?.text = newtitle
         self.articlesFilterViewModel = articlesFilterViewModel
-        print("ETO TITLE\(String(describing: self.title))")
     }
     
     func populateFav(favNews: WishList) {
@@ -60,36 +59,12 @@ class MainTableViewCell: UITableViewCell {
         guard let newtitle = favNews.title else {return}
         self.title = newtitle
         self.titleLbl?.text = newtitle
-        //        self.favNews = favNews
-        print("ETO TITLE\(String(describing: self.title))")
     }
     
     @IBAction func clickLike(_ sender: UIButton) {
         saveWishToFavorites()
         let newValue = self.persistenceManager.fetch(WishList.self)
         FavListViewModel.shared.savedNews.accept(newValue)
-//        self.likeBtn.rx.tap
-//            .debug("button tap")
-//            .bind(onNext: { [unowned self] _ in
-//            }).disposed(by: disposeBag)
     }
 }
-        //       let vc  = ViewController()
-        //        vc.setupFavs()
-        //        let favVc = FavListViewController()
-        //        vc.setupFavs()
-        //        Observable.create { observer in
-        //            persistenceManager.fetch(WishList.self){ result in
-        ////                let newArray = result.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
-        //                observer.onNext(newArray)
-        //                observer.onComp
-        //        favNews =
-        
-        //                let newValue =  FavListViewModel.shared.savedNews.value + [article]
-        
-        
-        //            if let news = strongself.favNews {
-        //                vc.savedNews.accept(news)
-        //                vc.badgeCount.text = "\(news.count)"
-        //                favVc.savedNews.accept(news)
-        //            }
+

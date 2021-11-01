@@ -11,26 +11,16 @@ import RxSwift
 import RxCocoa
 
 class FavListViewController: UIViewController, NSFetchedResultsControllerDelegate {
-    //        MARK: - VARIABLES
+    
     var wishTableView: UITableView!
     var container: NSPersistentContainer!
-    weak var coordinator: WishListCoordinator?
     let persistenceManager = PersistenceManager.shared
-//    var savedFavArticles = BehaviorRelay<[WishList]>(value: [])
     var savedNews = BehaviorRelay<[WishList]>(value: [])
     let disposeBag = DisposeBag()
     var favListViewModel = FavListViewModel()
-    var newsTitle: String?
-    var wishAlreadySaved: Bool?
-    var indexPath: IndexPath?
-    var selectedItemId: String?
     weak var mainCoordinator: WishListCoordinator?
-    var isLiked = Notification.Name("isLiked")
-    
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-    
+    var newsTitle: String?
+   
     var emptyLabel: UILabel = {
         let label = UILabel()
         label.setupLbl()
@@ -54,21 +44,17 @@ class FavListViewController: UIViewController, NSFetchedResultsControllerDelegat
             UINavigationBar.appearance().setBackgroundImage(UIImage(), for: .default)
             UINavigationBar.appearance().tintColor = .textBlue
             UINavigationBar.appearance().shadowImage = UIImage()
-//            if self.savedFavArticles.value.count == 0 {
-//                self.wishTableView.isHidden = true
-//            }
             self.navigationItem.backButtonTitle = ""
+            self.fetchCoreData()
+
         }
     }
     
-//    func setupFavs() {
-//        favListViewModel.getSavedFavToObservable()
-//            .observe(on: MainScheduler.instance)
-//            .subscribe(onNext: { data in
-//                self.savedNews.accept(data)
-//            })
-//            .disposed(by: disposeBag)
-//    }
+    func fetchCoreData() {
+        let newValue = self.persistenceManager.fetch(WishList.self)
+        self.savedNews.accept(newValue)
+        
+    }
     //  MARK: - SETUP UI
     func setupWishTableView() {
         let barHeight: CGFloat = UIApplication.shared.statusBarFrame.size.height
@@ -84,30 +70,8 @@ class FavListViewController: UIViewController, NSFetchedResultsControllerDelegat
         self.view.addSubview(wishTableView)
         wishTableView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
     }
-    //  MARK: - Setup Bindings
-    
-    func setupBindings() {
-
-        FavListViewModel.shared.savedNews
-            .observe(on: MainScheduler.instance)
-            .bind(to: self.savedNews)
-            .disposed(by: disposeBag)
-
-    }
-    
-//    func setupFavs() {
-//        favListViewModel.getSavedFavToObservable()
-//            .observe(on: MainScheduler.instance)
-//            .subscribe(onNext: { data in
-//                var array = self.savedNews.value
-//                array.removeAll()
-//                self.savedNews.accept(data)
-//            })
-//            .disposed(by: disposeBag)
-//    }
 }
-
-//MARK: - Rx Tableview
+//MARK: - Rx Tableview & Setup
 extension FavListViewController {
     
     func setupMainCell() {
@@ -143,5 +107,13 @@ extension FavListViewController {
                 }
                 self?.mainCoordinator?.detailShow(url)
             }).disposed(by: disposeBag)
+    }
+    
+    func setupBindings() {
+        FavListViewModel.shared.savedNews
+            .observe(on: MainScheduler.instance)
+            .bind(to: self.savedNews)
+            .disposed(by: disposeBag)
+        
     }
 }

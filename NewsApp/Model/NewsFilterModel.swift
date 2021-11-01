@@ -18,7 +18,7 @@ struct NewsFilterModel: Decodable {
         case url = "url"
         case language = "language"
         case country = "country"
-}
+    }
 }
 
 struct Response: Decodable {

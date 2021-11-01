@@ -22,8 +22,8 @@ class FavListViewModel{
         getSavedFavToObservable()
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { data in
-//                var array = self.savedNews.value
-//                array.removeAll()
+                var array = self.savedNews.value
+                array.removeAll()
                 self.savedNews.accept(data)
             })
             .disposed(by: disposeBag)

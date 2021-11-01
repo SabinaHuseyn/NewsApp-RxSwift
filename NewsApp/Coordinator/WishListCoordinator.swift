@@ -20,13 +20,13 @@ final class WishListCoordinator: Coordinator{
     
     func start() {
         let vc = FavListViewController()
-        vc.coordinator = self
+        vc.mainCoordinator = self
         navigationController.pushViewController(vc, animated: true)
     }
     
     func detailShow(_ url: String) {
         let vc = WebViewController()
-//        vc.webCoordinator = self
+        //        vc.webCoordinator = self
         vc.detailsUrl = url
         navigationController.pushViewController(vc, animated: true)
     }

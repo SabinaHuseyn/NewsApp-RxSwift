@@ -24,7 +24,6 @@ class Service {
         
         AF.request(components.url! as URLConvertible, method: .get).responseDecodable(
             of: Response.self) { response in
-                print("DATA\(response)")
                 guard let items = response.value else {
                     return completion([])
                     
@@ -34,26 +33,24 @@ class Service {
                 }
             }
     }
-
-func fetchNewsForTableview(query: [URLQueryItem], completion: @escaping ([ArticleModel]) -> Void) {
-    // 1
-    let url = API.baseUrl
-    // 2let
-    var components = URLComponents(string: url)!
-    components.queryItems = query
     
-    AF.request(components.url! as URLConvertible, method: .get).responseDecodable(
-        of: ResponseArticle.self) { response in
-            print("DATA\(response)")
-            guard let items = response.value else {
-                return completion([])
-                
+    func fetchNewsForTableview(query: [URLQueryItem], completion: @escaping ([ArticleModel]) -> Void) {
+        // 1
+        let url = API.baseUrl
+        // 2let
+        var components = URLComponents(string: url)!
+        components.queryItems = query
+        
+        AF.request(components.url! as URLConvertible, method: .get).responseDecodable(
+            of: ResponseArticle.self) { response in
+                guard let items = response.value else {
+                    return completion([])
+                    
+                }
+                DispatchQueue.main.async {
+                    completion(items.articles)
+                }
             }
-            DispatchQueue.main.async {
-                completion(items.articles)
-                print("RESULT\(items.articles)")
-            }
-        }
-}
-
+    }
+    
 }

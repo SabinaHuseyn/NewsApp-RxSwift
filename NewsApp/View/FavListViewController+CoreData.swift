@@ -23,7 +23,6 @@ extension FavListViewController {
         guard let wishTitle = self.newsTitle else { return }
         if checkCoreDataForExistingWish(wishTitle) {
             deleteWishFromCoreData()
-//            favListViewModel.setupFavs()
             return
         }
     }
@@ -36,7 +35,6 @@ extension FavListViewController {
             
             if currentWish.title == wishTitle {
                 persistenceManager.delete(currentWish)
-                wishAlreadySaved = false
                 let cell = wishTableView.cellForRow(at: [0,1]) as! MainTableViewCell
                 cell.likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
 

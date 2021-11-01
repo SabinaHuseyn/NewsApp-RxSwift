@@ -24,11 +24,9 @@ extension MainTableViewCell {
         guard let title = self.title else { return }
         if checkCoreDataForExistingWish(title) {
             deleteWishFromCoreData()
-//            favListViewModel.getSavedFavToObservable()
             return
         }
         saveWishToCoreData(self.articlesFilterViewModel)
-//        favListViewModel.getSavedFavToObservable()
     }
     
     func saveWishToCoreData(_ list: ObservableViewModel.ArticlesFilterViewModel?) {
@@ -48,7 +46,6 @@ extension MainTableViewCell {
         } catch {
             print("Error saving: \(error)")
         }
-//        favNews = persistenceManager.fetch(WishList.self)
         likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
     }
     
@@ -57,18 +54,13 @@ extension MainTableViewCell {
         let title = self.title
         
         for currentWish in savedWish {
-            
             if currentWish.title == title {
                 persistenceManager.delete(currentWish)
-                
-//                favNews = persistenceManager.fetch(WishList.self)
-//                favListViewModel.getSavedFavToObservable()
-
                 likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
                 break
             }
         }
     }
-
+    
 }
 

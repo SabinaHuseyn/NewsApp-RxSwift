@@ -12,9 +12,9 @@ class MainCoordinator: Coordinator {
     var navigationController: UINavigationController
     var childCoordinators: [Coordinator] = [Coordinator]()
     init(navigationController: UINavigationController) {
-          self.navigationController = navigationController
-      }
-
+        self.navigationController = navigationController
+    }
+    
     func start() {
         let vc = ViewController()
         vc.mainCoordinator = self
