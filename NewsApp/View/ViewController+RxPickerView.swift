@@ -13,9 +13,14 @@ import RxCocoa
 extension ViewController {
     
     func setupCountryPickerViews() {
-        let filteredNews = newsCountry.asObservable().map { Array(Set($0)) }
+            newsCountry.asObservable().map { Array(Set($0)) }
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { data in
+                self.filteredCountry.accept(data)
+            })
+            .disposed(by: disposeBag)
 
-        filteredNews
+        filteredCountry
             .observe(on: MainScheduler.instance)
             .bind(to: countryPickerView
                     .rx
@@ -26,24 +31,32 @@ extension ViewController {
     }
     
     func setupCountryPickerTapHandling() {
+
         countryPickerView.rx.itemSelected
             .subscribe(onNext: { [weak self] (row, element) in
                 guard let wSelf = self else {
                     return
                 }
-                self?.fetchCountry(country: wSelf.newsCountry.value[row])
-                self?.btnCountry.setTitle(wSelf.newsCountry.value[row], for: .normal)
-                self?.btnCategory.setTitle("Category", for: .normal)
-                self?.btnSource.setTitle("Source", for: .normal)
+                self?.observableNewsViewModel.fetchCountry(country: wSelf.filteredCountry.value[row])
+                self?.btnCountry.setTitle(wSelf.filteredCountry.value[row], for: .normal)
+                self?.btnCountry.setImage(nil, for: .normal)
+                self?.btnCountry.contentHorizontalAlignment = .center
+                self?.btnCategory.setBtn("Category")
+                self?.btnSource.setBtn("Source")
                 self?.countryPickerView.isHidden = true
                 
             }).disposed(by: disposeBag)
     }
 
 func setupCategoryPickerViews() {
-    let filteredNews = newsCategory.asObservable().map { Array(Set($0)) }
-
-    filteredNews
+        newsCategory.map { Array(Set($0)) }
+        .observe(on: MainScheduler.instance)
+        .subscribe(onNext: { data in
+            self.filteredCategory.accept(data)
+        })
+        .disposed(by: disposeBag)
+    
+    filteredCategory
         .observe(on: MainScheduler.instance)
         .bind(to: categoryPickerView
                 .rx
@@ -54,24 +67,32 @@ func setupCategoryPickerViews() {
 }
 
 func setupCategoryPickerTapHandling() {
+
     categoryPickerView.rx.itemSelected
         .subscribe(onNext: { [weak self] (row, element) in
             guard let wSelf = self else {
                 return
             }
-            self?.fetchCategory(category: wSelf.newsCategory.value[row])
-            self?.btnCategory.setTitle(wSelf.newsCategory.value[row], for: .normal)
-            self?.btnCountry.setTitle("Country", for: .normal)
-            self?.btnSource.setTitle("Source", for: .normal)
+            self?.observableNewsViewModel.fetchCategory(category: wSelf.filteredCategory.value[row])
+            self?.btnCategory.setTitle(wSelf.filteredCategory.value[row], for: .normal)
+            self?.btnCategory.setImage(nil, for: .normal)
+            self?.btnCategory.contentHorizontalAlignment = .center
+            self?.btnCountry.setBtn("Country")
+            self?.btnSource.setBtn("Source")
             self?.categoryPickerView.isHidden = true
             
         }).disposed(by: disposeBag)
 }
 
 func setupSourcePickerViews() {
-    let filteredNews = newsSource.asObservable().map { Array(Set($0)) }
+        newsSource.asObservable().map { Array(Set($0)) }
+        .observe(on: MainScheduler.instance)
+        .subscribe(onNext: { data in
+            self.filteredSource.accept(data)
+        })
+        .disposed(by: disposeBag)
 
-    filteredNews
+    filteredSource
         .observe(on: MainScheduler.instance)
         .bind(to: sourcePickerView
                 .rx
@@ -87,10 +108,12 @@ func setupSourcePickerTapHandling() {
             guard let wSelf = self else {
                 return
             }
-            self?.fetchSource(source:wSelf.newsSource.value[row])
-            self?.btnSource.setTitle(wSelf.newsSource.value[row], for: .normal)
-            self?.btnCountry.setTitle("Country", for: .normal)
-            self?.btnCategory.setTitle("Category", for: .normal)
+            self?.observableNewsViewModel.fetchSource(source:wSelf.filteredSource.value[row])
+            self?.btnSource.setTitle(wSelf.filteredSource.value[row], for: .normal)
+            self?.btnSource.setImage(nil, for: .normal)
+            self?.btnSource.contentHorizontalAlignment = .center
+            self?.btnCountry.setBtn("Country")
+            self?.btnCategory.setBtn("Category")
             self?.sourcePickerView.isHidden = true
             
         }).disposed(by: disposeBag)

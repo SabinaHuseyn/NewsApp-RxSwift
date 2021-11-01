@@ -19,7 +19,7 @@ final class WishListCoordinator: Coordinator{
     }
     
     func start() {
-        let vc = WishListViewController()
+        let vc = FavListViewController()
         vc.coordinator = self
         navigationController.pushViewController(vc, animated: true)
     }

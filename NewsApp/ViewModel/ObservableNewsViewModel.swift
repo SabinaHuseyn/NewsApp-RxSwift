@@ -13,11 +13,15 @@ import RxCocoa
 class ObservableNewsViewModel{
     
     static let shared = ObservableNewsViewModel()
-//    static let countryObservable = Observable<[NewsFilterViewModel]>
-//    static let categoryObservable = Observable<[NewsFilterViewModel]>
-//    static let sourcesObservable = Observable<[NewsFilterViewModel]>
+    var observableViewModel = ObservableViewModel()
 
-    
+//    public var newsCountry = BehaviorRelay<[String]>(value: [])
+//    public var newsCategory = BehaviorRelay<[String]>(value: [])
+//    public var newsSource = BehaviorRelay<[String]>(value: [])
+    public var articlesViewModels = BehaviorRelay<[ObservableViewModel.ArticlesFilterViewModel]>(value: [])
+
+    let disposeBag = DisposeBag()
+
     struct NewsFilterViewModel: Hashable {
         
         let country: String
@@ -44,5 +48,40 @@ class ObservableNewsViewModel{
             }
             return Disposables.create()
         }
+    }
+    
+    func fetchCountry(country: String) {
+        let queryParams: [URLQueryItem] = [
+            URLQueryItem(name: "country", value: country),
+            URLQueryItem(name: "apiKey", value: API.apiKey),
+        ]
+        observableFetch(query: queryParams)
+    }
+    
+    func fetchSource(source: String) {
+        let queryParams: [URLQueryItem] = [
+            URLQueryItem(name: "sources", value: source),
+            URLQueryItem(name: "apiKey", value: API.apiKey),
+        ]
+        observableFetch(query: queryParams)
+    }
+    
+    func fetchCategory(category: String) {
+        let queryParams: [URLQueryItem] = [
+            URLQueryItem(name: "category", value: category),
+            URLQueryItem(name: "apiKey", value: API.apiKey),
+        ]
+        observableFetch(query: queryParams)
+    }
+    
+    func observableFetch(query: [URLQueryItem]) {
+        ObservableViewModel.shared.fetchNews(query: query)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { data in
+                var array = self.articlesViewModels.value
+                array.removeAll()
+                self.articlesViewModels.accept(data)
+            })
+            .disposed(by: disposeBag)
     }
 }

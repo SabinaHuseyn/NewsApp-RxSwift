@@ -10,15 +10,16 @@ import CoreData
 import RxSwift
 import RxCocoa
 
-class WishListViewController: UIViewController, NSFetchedResultsControllerDelegate {
+class FavListViewController: UIViewController, NSFetchedResultsControllerDelegate {
     //        MARK: - VARIABLES
     var wishTableView: UITableView!
     var container: NSPersistentContainer!
     weak var coordinator: WishListCoordinator?
     let persistenceManager = PersistenceManager.shared
-    //    var savedWishes: [WishList] = []
-    var savedFavArticles = BehaviorRelay<[WishList]>(value: [])
+//    var savedFavArticles = BehaviorRelay<[WishList]>(value: [])
+    var savedNews = BehaviorRelay<[WishList]>(value: [])
     let disposeBag = DisposeBag()
+    var favListViewModel = FavListViewModel()
     var newsTitle: String?
     var wishAlreadySaved: Bool?
     var indexPath: IndexPath?
@@ -41,7 +42,10 @@ class WishListViewController: UIViewController, NSFetchedResultsControllerDelega
         view.backgroundColor = .white
         setupWishTableView()
         self.view.addSubview(emptyLabel)
-        setupFavs()
+        favListViewModel.setupFavs()
+        setupMainCell()
+        setupBindings()
+        setupCellTapHandling()
         //        clearCoreDataStore()
     }
     
@@ -50,34 +54,21 @@ class WishListViewController: UIViewController, NSFetchedResultsControllerDelega
             UINavigationBar.appearance().setBackgroundImage(UIImage(), for: .default)
             UINavigationBar.appearance().tintColor = .textBlue
             UINavigationBar.appearance().shadowImage = UIImage()
-            if self.savedFavArticles.value.count == 0 {
-                self.wishTableView.isHidden = true
-            }
+//            if self.savedFavArticles.value.count == 0 {
+//                self.wishTableView.isHidden = true
+//            }
             self.navigationItem.backButtonTitle = ""
         }
     }
     
-    func setupFavs() {
-        getSavedFavToObservable()
-            .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { data in
-                var array = self.savedFavArticles.value
-                array.removeAll()
-                self.savedFavArticles.accept(data)
-            })
-            .disposed(by: disposeBag)
-    }
-    
-    func getSavedFavToObservable() -> Observable<[WishList]>{
-        //        let wishes = persistenceManager.fetch(WishList.self)
-        return Observable.create { observer in
-            let result = self.persistenceManager.fetch(WishList.self)
-            let newArray = result.map({return $0})
-            observer.onNext(newArray)
-            observer.onCompleted()
-            return Disposables.create()
-        }
-    }
+//    func setupFavs() {
+//        favListViewModel.getSavedFavToObservable()
+//            .observe(on: MainScheduler.instance)
+//            .subscribe(onNext: { data in
+//                self.savedNews.accept(data)
+//            })
+//            .disposed(by: disposeBag)
+//    }
     //  MARK: - SETUP UI
     func setupWishTableView() {
         let barHeight: CGFloat = UIApplication.shared.statusBarFrame.size.height
@@ -93,30 +84,34 @@ class WishListViewController: UIViewController, NSFetchedResultsControllerDelega
         self.view.addSubview(wishTableView)
         wishTableView.rightAnchor.constraint(equalTo: view.rightAnchor).isActive = true
     }
+    //  MARK: - Setup Bindings
     
-    //  MARK: - NotificationObservers
+    func setupBindings() {
+
+        FavListViewModel.shared.savedNews
+            .observe(on: MainScheduler.instance)
+            .bind(to: self.savedNews)
+            .disposed(by: disposeBag)
+
+    }
     
-    //    func createObservers() {
-    //        NotificationCenter.default.addObserver(self, selector: #selector(WishListViewController.updateTableView(notification:)), name: isLiked, object: nil)
-    //    }
-    
-    //    @objc func updateTableView(notification: Notification) {
-    //        if notification.name == isLiked {
-    //            DispatchQueue.main.async {
-    //                self.savedWishes.removeAll()
-    //                self.getSavedWishes()
-    //                self.wishTableView.reloadData()
-    //            }
-    //        }
-    //        return
-    //    }
-    
+//    func setupFavs() {
+//        favListViewModel.getSavedFavToObservable()
+//            .observe(on: MainScheduler.instance)
+//            .subscribe(onNext: { data in
+//                var array = self.savedNews.value
+//                array.removeAll()
+//                self.savedNews.accept(data)
+//            })
+//            .disposed(by: disposeBag)
+//    }
 }
+
 //MARK: - Rx Tableview
-extension WishListViewController {
+extension FavListViewController {
     
     func setupMainCell() {
-        savedFavArticles
+        savedNews
             .observe(on: MainScheduler.instance)
             .bind(to: wishTableView
                     .rx
@@ -128,12 +123,13 @@ extension WishListViewController {
                         cell.articleImg.af.setImage(withURL: cellUrl)
                     }
                 }
-                let newsTitle = article.title
-                if cell.checkCoreDataForExistingWish(newsTitle!) {
+                if let newsTitle = article.title{
+                if cell.checkCoreDataForExistingWish(newsTitle) {
                     cell.likeBtn.setImage(#imageLiteral(resourceName: "filledFav"), for: .normal)
                 } else {
                     cell.likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
                 }
+            }
             }
                            .disposed(by: disposeBag)
     }

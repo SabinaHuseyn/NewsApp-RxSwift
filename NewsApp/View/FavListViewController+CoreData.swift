@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension WishListViewController {
+extension FavListViewController {
 
     func checkCoreDataForExistingWish( _ wtitle: String) -> Bool {
         let wishes = persistenceManager.fetch(WishList.self)
@@ -23,7 +23,7 @@ extension WishListViewController {
         guard let wishTitle = self.newsTitle else { return }
         if checkCoreDataForExistingWish(wishTitle) {
             deleteWishFromCoreData()
-            wishTableView.reloadData()
+//            favListViewModel.setupFavs()
             return
         }
     }
@@ -37,7 +37,6 @@ extension WishListViewController {
             if currentWish.title == wishTitle {
                 persistenceManager.delete(currentWish)
                 wishAlreadySaved = false
-                
                 let cell = wishTableView.cellForRow(at: [0,1]) as! MainTableViewCell
                 cell.likeBtn.setImage(#imageLiteral(resourceName: "emptyFav"), for: .normal)
 
@@ -45,6 +44,7 @@ extension WishListViewController {
             }
         }
     }
+    
     
 }
 

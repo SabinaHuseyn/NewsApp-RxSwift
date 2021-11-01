@@ -13,24 +13,27 @@ import RxCocoa
 
 class ViewController: UIViewController {
     
-    lazy var searchBar: UISearchBar = UISearchBar(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
     let searchController = UISearchController(searchResultsController: nil)
     var articlesViewModels = BehaviorRelay<[ObservableViewModel.ArticlesFilterViewModel]>(value: [])
     var newsCountry = BehaviorRelay<[String]>(value: [])
     var newsCategory = BehaviorRelay<[String]>(value: [])
     var newsSource = BehaviorRelay<[String]>(value: [])
+    var filteredCountry = BehaviorRelay<[String]>(value: [])
+    var filteredCategory = BehaviorRelay<[String]>(value: [])
+    var filteredSource = BehaviorRelay<[String]>(value: [])
     var savedNews = BehaviorRelay<[WishList]>(value: [])
     let disposeBag = DisposeBag()
+    let persistenceManager = PersistenceManager.shared
+    weak var mainCoordinator: MainCoordinator?
+    var observableViewModel = ObservableViewModel()
+    var observableNewsViewModel = ObservableNewsViewModel()
+    var favListViewModel = FavListViewModel()
     var mainTableView: UITableView!
     var countryPickerView = UIPickerView()
     var categoryPickerView = UIPickerView()
     var sourcePickerView = UIPickerView()
-    var spinner = UIActivityIndicatorView()
-    var container: NSPersistentContainer!
-    let persistenceManager = PersistenceManager.shared
-    weak var mainCoordinator: MainCoordinator?
     let favBtn = UIButton()
-    //    var offset = UIOffset()
+    lazy var searchBar: UISearchBar = UISearchBar(frame: CGRect(x: 0, y: 0, width: 300, height: 20))
     
     let badgeCount: UILabel = {
         var badge = UILabel()
@@ -77,11 +80,12 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
         favBtn.addSubview(badgeCount)
         setupSearch()
-        setupFavs()
+        favListViewModel.setupFavs()
         setupStackView()
         setupBtn()
         setupMainTableView()
         setupPickerViews()
+        setupBindings()
         filterNews()
         setupCountryPickerViews()
         setupCountryPickerTapHandling()
@@ -92,8 +96,8 @@ class ViewController: UIViewController {
         setupSearching()
         setupMainCell()
         setupCellTapHandling()
-        //        clearCoreDataStore()
-        
+        badgeCountChange()
+        clearCoreDataStore()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -102,56 +106,64 @@ class ViewController: UIViewController {
         let rightNavBarButton = UIBarButtonItem(customView:favBtn)
         self.navigationItem.rightBarButtonItem = rightNavBarButton
         DispatchQueue.main.async{
-            self.setupFavs()
+            self.favListViewModel.setupFavs()
+            self.mainTableView.reloadData()
             self.navigationItem.backButtonTitle = ""
+            self.badgeCountChange()
         }
     }
-    
-//    MARK: - Rx Core Data
-    
-    func setupFavs() {
-        getSavedFavToObservable()
-            .observe(on: MainScheduler.instance)
-            .subscribe(onNext: { data in
-                var array = self.savedNews.value
-                array.removeAll()
-                self.savedNews.accept(data)
-                if self.savedNews.value.count == 0 {
-                    self.badgeCount.isHidden = true
-                } else {
-                    self.badgeCount.isHidden = false
-                    self.badgeCount.text = "\(self.savedNews.value.count)"
-                }
+    //   public func setupFavs() {
+    //        favListViewModel.getSavedFavToObservable()
+    //            .observe(on: MainScheduler.instance)
+    //            .subscribe(onNext: { data in
+    //                if data.count == 0 {
+    //                    self.badgeCount.isHidden = true
+    //                } else {
+    //                    self.badgeCount.isHidden = false
+    //                    self.badgeCount.text = "\(data.count)"
+    //                }
+    //                self.savedNews.accept(data)
+    //            })
+    //            .disposed(by: disposeBag)
+    //    }
+    func badgeCountChange() {
+        FavListViewModel.shared.savedNews.asObservable()
+            .subscribe(onNext: { [unowned self] news in
+                self.badgeCount.text = "\(news.count)"
+                print("ETO COUNT \(news.count)")
+                
             })
             .disposed(by: disposeBag)
     }
+    //        savedNews.asObservable()
+    //            .observe(on: MainScheduler.instance)
+    //            .subscribe(onNext: { data in
+    //                if self.savedNews.value.count == 0 {
+    //                    self.badgeCount.isHidden = true
+    //                } else {
+    //                    self.badgeCount.isHidden = false
+    //                    self.savedNews.accept(data)
+    //                    self.badgeCount.text = "\(self.savedNews.value.count)"
+    //                }
+    //            })
+    //            .disposed(by: disposeBag)
     
-    func getSavedFavToObservable() -> Observable<[WishList]>{
-        return Observable.create { observer in
-            let result = self.persistenceManager.fetch(WishList.self)
-            let newArray = result.map({return $0})
-            observer.onNext(newArray)
-            observer.onCompleted()
-            return Disposables.create()
+    //    MARK: - CLEAR CORE DATA
+    func clearCoreDataStore() {
+        let context = persistenceManager.context
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "WishList")
+        
+        let deleteReqest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        
+        do {
+            try context.execute(deleteReqest)
+            
+        } catch {
+            print(error)
         }
     }
     
-    //    MARK: - CLEAR CORE DATA
-    //    func clearCoreDataStore() {
-    //            let context = persistenceManager.context
-    //            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "WishList")
-    //
-    //            let deleteReqest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-    //
-    //            do {
-    //                try context.execute(deleteReqest)
-    //
-    //            } catch {
-    //                print(error)
-    //            }
-    //        }
-    
-    // MARK: - UI SETUP    
+    // MARK: - UI SETUP
     func setupMainTableView() {
         let barHeight: CGFloat = UIApplication.shared.statusBarFrame.size.height + 210
         let displayWidth: CGFloat = self.view.frame.width
@@ -256,10 +268,10 @@ class ViewController: UIViewController {
             sourcePickerView.isHidden = true
         }
     }
-    //   MARK: Rx Setup
+    
+    //   MARK: - Rx SearchBar & Bindings
     
     func setupSearching() {
-        
         searchBar
             .rx.text.orEmpty
             .throttle(.milliseconds(300), scheduler: MainScheduler.instance)
@@ -278,6 +290,39 @@ class ViewController: UIViewController {
             })
             .disposed(by: disposeBag)
     }
+    
+    func setupBindings() {
+        observableNewsViewModel
+            .articlesViewModels
+            .observe(on: MainScheduler.instance)
+            .bind(to: self.articlesViewModels)
+            .disposed(by: disposeBag)
+        
+        favListViewModel
+            .savedNews
+            .observe(on: MainScheduler.instance)
+            .bind(to: self.savedNews)
+            .disposed(by: disposeBag)
+    }
 }
+////
+//        observableNewsViewModel
+//            .newsCategory
+//            .observe(on: MainScheduler.instance)
+//            .bind(to: self.newsCategory)
+//            .disposed(by: disposeBag)
+//
+//        observableNewsViewModel
+//            .newsSource
+//            .observe(on: MainScheduler.instance)
+//            .bind(to: self.newsSource)
+//            .disposed(by: disposeBag)
+//
+//        favListViewModel
+//            .savedNews
+//            .observe(on: MainScheduler.instance)
+//            .bind(to: self.savedNews)
+//            .disposed(by: disposeBag)
+
 
 

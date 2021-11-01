@@ -8,11 +8,12 @@
 import Foundation
 import UIKit
 import RxSwift
+import RxCocoa
         
 class ObservableViewModel{
     
     static let shared = ObservableViewModel()
-    
+
     struct ArticlesFilterViewModel {
         
         var id: String?
@@ -55,17 +56,6 @@ class ObservableViewModel{
         }
     }
     
-    func observableFetch(query: [URLQueryItem]) -> Observable<[ArticlesFilterViewModel]> {
-        return Observable.create { observer in
-            Service.shared.fetchNewsForTableview(query: query){ result in
-                let newArray = result.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
-                observer.onNext(newArray)
-                observer.onCompleted()
-            }
-            return Disposables.create()
-        }
-    }
-    
     func fetchNews(query: [URLQueryItem]) -> Observable<[ArticlesFilterViewModel]> {
         return observableFetch(query: query)
     }
@@ -78,6 +68,16 @@ class ObservableViewModel{
        return observableFetch(query: queryParams)
         }
     
+    func observableFetch(query: [URLQueryItem]) -> Observable<[ArticlesFilterViewModel]> {
+        return Observable.create { observer in
+            Service.shared.fetchNewsForTableview(query: query){ result in
+                let newArray = result.map({return ArticlesFilterViewModel(articlesFilterModel: $0)})
+                observer.onNext(newArray)
+                observer.onCompleted()
+            }
+            return Disposables.create()
+        }
+    }
 }
 
         

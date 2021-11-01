@@ -13,7 +13,7 @@ import RxCocoa
 extension ViewController {
     
     func setupMainCell() {
-        articlesViewModels
+            articlesViewModels
             .observe(on: MainScheduler.instance)
             .bind(to: mainTableView
                     .rx

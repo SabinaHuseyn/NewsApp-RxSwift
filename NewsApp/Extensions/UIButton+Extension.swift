@@ -15,9 +15,9 @@ import UIKit
         self.imageView?.contentMode = .scaleAspectFit
         self.contentVerticalAlignment = .fill
         self.semanticContentAttribute = .unspecified
-
         self.contentHorizontalAlignment = .left
         self.imageEdgeInsets = UIEdgeInsets(top: 5.0, left: 200.0, bottom: 5.0, right: 5.0)
+//        self.titleEdgeInsets = UIEdgeInsets(top: 0.0, left: 50.0, bottom: 0.0, right: 100.0)
 
       }
     
