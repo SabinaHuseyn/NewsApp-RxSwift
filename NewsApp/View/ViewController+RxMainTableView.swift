@@ -13,9 +13,8 @@ import RxCocoa
 extension ViewController {
     
     func setupMainCell() {
-            articlesViewModels
-            .observe(on: MainScheduler.instance)
-            .bind(to: mainTableView
+            articlesViewModels.asDriver()
+            .drive(mainTableView
                     .rx
                     .items(cellIdentifier: "MainTableViewCell",
                            cellType: MainTableViewCell.self)) { row, article, cell in
